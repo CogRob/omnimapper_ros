@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(omnimapper_ros)
 # Load catkin and all dependencies required for this package
+
 set(PKG_DEPENDS
   roscpp
   tf
@@ -11,7 +12,6 @@ set(PKG_DEPENDS
   laser_geometry
   nodelet
   csm
-  #GTSAM
 )
 
 set(BUILD_DEPENDS cmake_modules ${PKG_DEPENDS})
@@ -23,17 +23,8 @@ find_package(catkin REQUIRED COMPONENTS ${BUILD_DEPENDS})
 # Find omnimapper
 find_package(omnimapper REQUIRED)
 
-# Find GTSAM
-find_package(GTSAM REQUIRED)
-#include_directories(${GTSAM_INCLUDE_DIRS})
-
-#Eigen
-#set(EIGEN_INCLUDE_DIRS ${GTSAM_DIR}/../../../include/gtsam/3rdparty/Eigen/)
-#message("EIGEN_INCLUDE_DIRS: " ${EIGEN_INCLUDE_DIRS})
-
 # PCL Library
 find_package(PCL 1.7 REQUIRED)
-
 
 # Set include directories
 include_directories(
@@ -103,7 +94,7 @@ add_library(${PROJECT_NAME}
 				     src/omnimapper_ros.cpp
 )
 
-target_link_libraries(${PROJECT_NAME} omnimapper GTSAM ${PCL_LIBRARIES} organized_segmentation_tools tcmalloc profiler tbb csm)
+target_link_libraries(${PROJECT_NAME} omnimapper gtsam ${PCL_LIBRARIES} organized_segmentation_tools tcmalloc profiler tbb)
 
 add_dependencies(${PROJECT_NAME} ${csm_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
@@ -113,10 +104,10 @@ add_library(omnimapper_ros_nodelet src/omnimapper_ros_nodelet.cpp)
 target_link_libraries(omnimapper_ros_nodelet ${PROJECT_NAME})
 
 add_executable(omnimapper_ros_node src/omnimapper_ros_node.cpp)
-target_link_libraries(omnimapper_ros_node ${PROJECT_NAME} ${PCL_LIBRARIES} omnimapper GTSAM tcmalloc profiler)
+target_link_libraries(omnimapper_ros_node ${PROJECT_NAME} ${PCL_LIBRARIES} omnimapper gtsam tcmalloc profiler)
 
 add_executable(omnimapper_pcd src/omnimapper_ros_pcd.cpp)
-target_link_libraries(omnimapper_pcd ${PROJECT_NAME} ${PCL_LIBRARIES} omnimapper GTSAM tcmalloc tbb)
+target_link_libraries(omnimapper_pcd ${PROJECT_NAME} ${PCL_LIBRARIES} omnimapper gtsam tcmalloc tbb)
 
 add_executable(omnimapper_openni src/omnimapper_ros_openni.cpp)
-target_link_libraries(omnimapper_openni ${PROJECT_NAME} ${PCL_LIBRARIES} omnimapper GTSAM tcmalloc tbb)
+target_link_libraries(omnimapper_openni ${PROJECT_NAME} ${PCL_LIBRARIES} omnimapper gtsam tcmalloc tbb)
