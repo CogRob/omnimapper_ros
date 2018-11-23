@@ -480,7 +480,8 @@ omnimapper::OmniMapperVisualizerRViz<PointT>::spinOnce ()
     BOOST_FOREACH (const gtsam::NonlinearFactorGraph::sharedFactor& factor, (*current_graph))
     {
       // check for poses
-      const std::vector<gtsam::Key> keys = factor->keys ();
+      //const std::vector<gtsam::Key> keys = factor->keys ();
+      const gtsam::KeyVector keys = factor->keys();
 
       // skip if there aren't two pose keys
       if ((keys.size () == 2))

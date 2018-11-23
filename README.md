@@ -25,6 +25,12 @@ In your ros_workspace/src folder:
 git clone https://github.com/AndreaCensi/csm.git
 ``
 
+GSL is a depencency of CSM, so install: 
+
+``
+sudo apt install libgsl-dev
+``
+
 In your ros_workspace:
 ``
 catkin_make
