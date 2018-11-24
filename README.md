@@ -19,6 +19,12 @@ Install Omnimapper dependencies as detailed on this page: https://github.com/Cog
 
 ### Install Canonical Scan Matcher (csm)
 
+NOTES / TODO:
+
+err.... might be able to just install this through apt  (ros-kinetic-csm)
+
+ros package doesn't seem to actually depend on this
+
 In your ros_workspace/src folder:
 
 ``
