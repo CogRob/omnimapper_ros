@@ -52,7 +52,7 @@
 
 namespace omnimapper
 {
-    /** \brief OmniMapperVisualizerRViz is an output plugin for OmniMapper based on the RViz.  
+    /** \brief OmniMapperVisualizerRViz is an output plugin for OmniMapper based on the RViz.
    *
    * \author Alex Trevor
    */
@@ -106,7 +106,7 @@ namespace omnimapper
     protected:
       // A ROS Node Handle
       ros::NodeHandle nh_;
-      
+
       // A reference to a mapper instance
       OmniMapperBase* mapper_;
 
@@ -130,10 +130,10 @@ namespace omnimapper
 
       // Publisher for the trajectory
       ros::Publisher pose_array_pub_;
-      
+
       // Publisher for the map clouds
       ros::Publisher map_cloud_pub_;
-      
+
       // Publisher for Planar boundaries
       ros::Publisher planar_boundary_pub_;
 
@@ -146,7 +146,7 @@ namespace omnimapper
       ros::Publisher segmented_plane_pub_;
       ros::Publisher segmented_label_cloud_pub_;
       ros::Publisher segmented_clusters_pub_;
-      
+
       // Publisher for object observations
       ros::Publisher object_observation_pub_;
       ros::Publisher object_modeled_pub_;
@@ -176,7 +176,7 @@ namespace omnimapper
       bool draw_icp_clouds_full_res_;
 
       bool draw_icp_clouds_downsampled_;
-      
+
       bool draw_planar_landmarks_;
 
       bool draw_pose_array_;

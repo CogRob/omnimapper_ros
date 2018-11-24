@@ -27,14 +27,14 @@ find_package(omnimapper REQUIRED)
 
 # Find GTSAM
 find_package(GTSAM REQUIRED)
-include_directories(${GTSAM_INCLUDE_DIRS})
+#include_directories(${GTSAM_INCLUDE_DIRS})
 
 # Find Boost
 find_package(Boost REQUIRED COMPONENTS system)
 
 #Eigen
-set(EIGEN_INCLUDE_DIRS ${GTSAM_DIR}/../../../include/gtsam/3rdparty/Eigen/)
-message("EIGEN_INCLUDE_DIRS: " ${EIGEN_INCLUDE_DIRS})
+#set(EIGEN_INCLUDE_DIRS ${GTSAM_DIR}/../../../include/gtsam/3rdparty/Eigen/)
+#message("EIGEN_INCLUDE_DIRS: " ${EIGEN_INCLUDE_DIRS})
 
 # PCL Library
 find_package(PCL 1.7 REQUIRED)
@@ -66,6 +66,12 @@ get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY LINK_DIRECTORIE
 foreach(dir ${dirs})
   message(STATUS "link dir='${dir}'")
 endforeach()
+
+# # Build ROS Messages and Services
+# add_message_files(FILES
+#   ObjectInfo.msg
+#   ObjectInfos.msg
+# )
 
 add_service_files(
   FILES

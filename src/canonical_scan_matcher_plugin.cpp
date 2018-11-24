@@ -32,7 +32,7 @@ gtsam::Pose3 doCSM_impl ( const sensor_msgs::LaserScan& from_scan,
                                           Pose3ToPose2(pr_ch_l_pose3),
                                           outp_rel_pose_laser,
                                           noise_model);
-    
+
     tf::Transform corr_ch_l = Pose3ToTransform(Pose2ToPose3(outp_rel_pose_laser));
     tf::Transform corr_ch = base_to_laser_ * corr_ch_l * laser_to_base_;
     outp_rel_pose_laser = Pose3ToPose2(TransformToPose3(corr_ch));
@@ -207,7 +207,7 @@ namespace omnimapper
     if (debug_)
       std::cout << "Pose symbol for current scan: " << current_sym.index() << std::endl;
     lscans_.insert(std::pair<gtsam::Symbol, LaserScanPtr>(current_sym, current_lscan));
-    
+
     try
     {
       sensor_msgs::PointCloud2 scan_cloud;
@@ -246,7 +246,7 @@ namespace omnimapper
         boost::thread loop_closure_thread (&CanonicalScanMatcherPlugin<LScanT>::tryLoopClosure, this, previous_sym_);
         loop_closure_thread.join ();
       }
-      
+
     }
     //latest_icp_thread.join ();
 
@@ -268,7 +268,7 @@ namespace omnimapper
   CanonicalScanMatcherPlugin<LScanT>::getBaseToLaserTf (const std::string& frame_id)
   {
     ros::Time t = ros::Time::now();
-    
+
     tf::StampedTransform base_to_laser_tf;
     try
     {
@@ -284,7 +284,7 @@ namespace omnimapper
     }
     base_to_laser_ = base_to_laser_tf;
     laser_to_base_ = base_to_laser_.inverse();
-    
+
     return true;
   }
 
@@ -320,7 +320,7 @@ CanonicalScanMatcherPlugin<LScanT>::addConstraint(gtsam::Symbol sym1, gtsam::Sym
 
     bool worked = false;
     gtsam::noiseModel::Gaussian::shared_ptr noise;//(new gtsam::noiseModel::Gaussian());
- 
+
     gtsam::Pose3 relative_pose = doCSM_impl(*scan1, *scan2, initial_guess, worked, noise, cscan, base_to_laser_, true);
 
     //debug
@@ -424,7 +424,13 @@ CanonicalScanMatcherPlugin<LScanT>::addConstraint(gtsam::Symbol sym1, gtsam::Sym
     }
 
     if (!always_add)
-      noise = gtsam::noiseModel::Diagonal::Sigmas ((gtsam::Vector (6) << 0.1, 0.1, 0.1, 0.1, 0.1, 0.1));
+    {
+
+      gtsam::Vector noise_vector(6);
+      noise_vector << 0.1, 0.1, 0.1, 0.1, 0.1, 0.1;
+      noise = gtsam::noiseModel::Diagonal::Sigmas(noise_vector);
+
+    }
 
     if (debug_)
       printf("CSM Relative Pose: %lf %lf %lf", relative_pose.x(), relative_pose.y(), relative_pose.z());
@@ -447,7 +453,7 @@ CanonicalScanMatcherPlugin<LScanT>::addConstraint(gtsam::Symbol sym1, gtsam::Sym
     gtsam::Values solution = mapper_->getSolution ();
 
     boost::optional<gtsam::Pose3> current_pose = mapper_->predictPose(sym);
-    
+
     if (!current_pose)
       {
 	printf ("Could not predict pose in Laser Scan loop closure!\n");
@@ -474,7 +480,7 @@ CanonicalScanMatcherPlugin<LScanT>::addConstraint(gtsam::Symbol sym1, gtsam::Sym
         // Compute distance from scan_centroids
         gtsam::Point3 test_centroid = lscan_centroids_[test_sym];
         gtsam::Point3 test_centroid_map = test_pose.transform_from (test_centroid);
-        
+
         double centroid_dist = fabs (test_centroid_map.distance (current_centroid_map));
 
         std::map<gtsam::Symbol, LaserScanPtr>::iterator itr1;

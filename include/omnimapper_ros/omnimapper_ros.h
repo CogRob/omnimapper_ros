@@ -64,12 +64,13 @@
 
 #include <tf/transform_listener.h>
 #include <tf/transform_broadcaster.h>
-#include <google/profiler.h>
+//#include <google/profiler.h>
+#include <gperftools/profiler.h>
 
 template<typename PointT>
 class OmniMapperROS
 {
-  
+
   typedef pcl::PointCloud<PointT> Cloud;
   typedef typename Cloud::Ptr CloudPtr;
   typedef typename Cloud::ConstPtr CloudConstPtr;
@@ -80,19 +81,19 @@ class OmniMapperROS
   public:
     // Constructor
     OmniMapperROS (ros::NodeHandle nh);
-    
+
     // Load (or reload) ROS Parameters
     void loadROSParams ();
 
     // Point Cloud Callback
     void cloudCallback (const sensor_msgs::PointCloud2ConstPtr& msg);
-    
+
     // Laser Scan Callback
     void laserScanCallback (const sensor_msgs::LaserScanConstPtr& msg);
-    
+
     // Evaluation Timer Callback
     //void evalTimerCallback (const ros::TimerEvent& e);
-    
+
     // Map To Odometry Correction Publication
     void publishMapToOdom ();
 
@@ -104,8 +105,8 @@ class OmniMapperROS
                                   omnimapper_ros::OutputMapTSDF::Response &res);
 
     /*
-    void runEvaluation (std::string& associated_filename, 
-                        std::string& groundtruth_filename, 
+    void runEvaluation (std::string& associated_filename,
+                        std::string& groundtruth_filename,
                         std::string& pcd_path,
                         std::string& output_trajectory_filename,
                         std::string& output_timing_filename);
