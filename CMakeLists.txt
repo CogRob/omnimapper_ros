@@ -10,12 +10,17 @@ set(PKG_DEPENDS
   geometry_msgs
   laser_geometry
   nodelet
-  csm
+  #csm
   #GTSAM
 )
 
 set(BUILD_DEPENDS cmake_modules ${PKG_DEPENDS})
 set(RUN_DEPENDS ${PKG_DEPENDS})
+
+#TODO: FIX OMNIMAPPER INSTALL
+set(omnimapper_DIR /home/antonella/omnimapper/omnimapper/build/cmake)
+
+
 
 # Find catkin and required ROS packages
 find_package(catkin REQUIRED COMPONENTS ${BUILD_DEPENDS})
@@ -26,6 +31,10 @@ find_package(omnimapper REQUIRED)
 # Find GTSAM
 find_package(GTSAM REQUIRED)
 #include_directories(${GTSAM_INCLUDE_DIRS})
+
+# Find CSM
+#find_package(csm REQUIRED)
+
 
 #Eigen
 #set(EIGEN_INCLUDE_DIRS ${GTSAM_DIR}/../../../include/gtsam/3rdparty/Eigen/)
@@ -44,7 +53,7 @@ include_directories(
 )
 
 # Link directories
-link_directories(${csm_LIBRARY_DIRS})
+#link_directories(${csm_LIBRARY_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 
 SET(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
@@ -76,10 +85,10 @@ endforeach()
 # ROS Services
 add_service_files(
   FILES
-    OutputMapTSDF.srv
-    PublishModel.srv
-    VisualizeFullCloud.srv
-    WriteTrajectoryFile.srv
+  OutputMapTSDF.srv
+  PublishModel.srv
+  VisualizeFullCloud.srv
+  WriteTrajectoryFile.srv
 )
 
 generate_messages(DEPENDENCIES geometry_msgs std_msgs)
@@ -91,19 +100,20 @@ catkin_package(
 )
 
 add_library(${PROJECT_NAME}
-				     src/ros_time_utils.cpp
-				     src/ros_tf_utils.cpp
-				     src/tf_pose_plugin.cpp
-				     src/omnimapper_visualizer_rviz.cpp
-				     src/get_transform_functor_tf.cpp
-				     src/canonical_scan_matcher_plugin.cpp
-				     src/canonical_scan.cpp
-				     src/csm_math_functions.cpp
-				     src/csm_visualizer.cpp
-				     src/omnimapper_ros.cpp
+            src/ros_time_utils.cpp
+            src/ros_tf_utils.cpp
+	    src/tf_pose_plugin.cpp
+	    src/omnimapper_visualizer_rviz.cpp
+	    src/get_transform_functor_tf.cpp
+            src/canonical_scan_matcher_plugin.cpp
+	    src/canonical_scan.cpp
+	    src/csm_math_functions.cpp
+	    src/csm_visualizer.cpp
+	    src/omnimapper_ros.cpp
 )
 
-target_link_libraries(${PROJECT_NAME} omnimapper GTSAM ${PCL_LIBRARIES} organized_segmentation_tools tcmalloc profiler tbb csm)
+
+target_link_libraries(${PROJECT_NAME} omnimapper GTSAM ${PCL_LIBRARIES} organized_segmentation_tools tcmalloc profiler tbb) #csm)
 
 add_dependencies(${PROJECT_NAME} ${csm_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 

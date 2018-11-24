@@ -425,7 +425,11 @@ CanonicalScanMatcherPlugin<LScanT>::addConstraint(gtsam::Symbol sym1, gtsam::Sym
 
     if (!always_add)
     {
-      noise = gtsam::noiseModel::Diagonal::Sigmas( gtsam::Vector(6) << 0.1, 0.1, 0.1, 0.1, 0.1, 0.1);
+
+      gtsam::Vector noise_vector(6);
+      noise_vector << 0.1, 0.1, 0.1, 0.1, 0.1, 0.1;
+      noise = gtsam::noiseModel::Diagonal::Sigmas(noise_vector);
+
     }
 
     if (debug_)

@@ -203,8 +203,8 @@ namespace scan_tools {
         for (unsigned int i = 0;i<inp->size1;i++) {
             for (unsigned int j = 0;j<inp->size2;j++) {
 	            mat(i,j) = gsl_matrix_get(inp, i,j);
-	            if(isnan(mat(i,j))) valid = false;
-	            if(isinf(mat(i,j))) valid = false;
+	            if(std::isnan(mat(i,j))) valid = false;
+	            if(std::isinf(mat(i,j))) valid = false;
 
             }
         }
