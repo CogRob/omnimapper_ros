@@ -10,7 +10,7 @@ set(PKG_DEPENDS
   geometry_msgs
   laser_geometry
   nodelet
-  #csm
+  csm
   #GTSAM
 )
 
@@ -18,8 +18,11 @@ set(BUILD_DEPENDS cmake_modules ${PKG_DEPENDS})
 set(RUN_DEPENDS ${PKG_DEPENDS})
 
 #TODO: FIX OMNIMAPPER INSTALL
-set(omnimapper_DIR /home/antonella/omnimapper/omnimapper/build/cmake)
+#set(omnimapper_DIR /home/antonella/omnimapper/omnimapper/build/cmake)
+set(omnimapper_DIR /usr/local/lib/omnimapper)
 
+#set(csm_DIR /home/antonella/ros_packages/src/csm/cmake)
+set(csm_DIR /home/antonella/ros_packages/src/csm/deploy/lib/csm)
 
 
 # Find catkin and required ROS packages
@@ -35,6 +38,8 @@ find_package(GTSAM REQUIRED)
 # Find CSM
 #find_package(csm REQUIRED)
 
+# Find Boost
+find_package(Boost REQUIRED COMPONENTS system)
 
 #Eigen
 #set(EIGEN_INCLUDE_DIRS ${GTSAM_DIR}/../../../include/gtsam/3rdparty/Eigen/)
@@ -44,17 +49,17 @@ find_package(GTSAM REQUIRED)
 find_package(PCL 1.7 REQUIRED)
 
 
-# Set include directories
-include_directories(
-  include
-    ${catkin_INCLUDE_DIRS}
-    ${Boost_INCLUDE_DIR}
-    ${PCL_INCLUDE_DIRS}
-)
-
 # Link directories
-#link_directories(${csm_LIBRARY_DIRS})
+link_directories(${csm_LIBRARY_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
+
+# TODO: there is a better way
+link_directories(/home/antonella/omnimapper/omnimapper/build)
+link_directories(/home/antonella/omnimapper/omnimapper/build/organized_segmentation_tools_dev)
+link_directories(/home/antonella/omnimapper/gtsam-4.0/build/gtsam)
+link_directories(/home/antonella/ros_packages/src/csm/deploy/lib)
+
+#set (CMAKE_CXX_STANDARD 11)
 
 SET(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
 SET(CMAKE_CXX_FLAGS_RELEASE "-O3 -std=c++11")
@@ -99,6 +104,15 @@ catkin_package(
     #LIBRARIES ${PROJECT_NAME}
 )
 
+# Set include directories
+include_directories(
+  include
+    ${catkin_INCLUDE_DIRS}
+    ${Boost_INCLUDE_DIRS}
+    ${PCL_INCLUDE_DIRS}
+)
+
+
 add_library(${PROJECT_NAME}
             src/ros_time_utils.cpp
             src/ros_tf_utils.cpp
@@ -113,20 +127,20 @@ add_library(${PROJECT_NAME}
 )
 
 
-target_link_libraries(${PROJECT_NAME} omnimapper GTSAM ${PCL_LIBRARIES} organized_segmentation_tools tcmalloc profiler tbb) #csm)
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${PCL_LIBRARIES} omnimapper gtsam organized_segmentation_tools tcmalloc profiler tbb csm)
 
-add_dependencies(${PROJECT_NAME} ${csm_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(${PROJECT_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${csm_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
-add_executable(time_test src/time_test.cpp)
+#add_executable(time_test src/time_test.cpp)
 
 add_library(omnimapper_ros_nodelet src/omnimapper_ros_nodelet.cpp)
-target_link_libraries(omnimapper_ros_nodelet ${PROJECT_NAME})
+target_link_libraries(omnimapper_ros_nodelet ${PROJECT_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 add_executable(omnimapper_ros_node src/omnimapper_ros_node.cpp)
-target_link_libraries(omnimapper_ros_node ${PROJECT_NAME} ${PCL_LIBRARIES} omnimapper GTSAM tcmalloc profiler)
+target_link_libraries(omnimapper_ros_node ${PROJECT_NAME} ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${Boost_LIBRARIES} omnimapper gtsam tcmalloc profiler)
 
 add_executable(omnimapper_pcd src/omnimapper_ros_pcd.cpp)
-target_link_libraries(omnimapper_pcd ${PROJECT_NAME} ${PCL_LIBRARIES} omnimapper GTSAM tcmalloc tbb)
+target_link_libraries(omnimapper_pcd ${PROJECT_NAME} ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${Boost_LIBRARIES} omnimapper gtsam tcmalloc tbb)
 
 add_executable(omnimapper_openni src/omnimapper_ros_openni.cpp)
-target_link_libraries(omnimapper_openni ${PROJECT_NAME} ${PCL_LIBRARIES} omnimapper GTSAM tcmalloc tbb)
+target_link_libraries(omnimapper_openni ${PROJECT_NAME} ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${Boost_LIBRARIES} omnimapper gtsam tcmalloc tbb)

@@ -26,11 +26,11 @@ public:
     boost::posix_time::ptime time_t_epoch(boost::gregorian::date(1970,1,1));
     boost::posix_time::time_duration diff = t1_boost - time_t_epoch;
     std::cout << "Since epoch: " << diff.total_nanoseconds() << std::endl;
-    
+
     ros::Time t1_ros_again;
     t1_ros_again.fromNSec(diff.total_nanoseconds());
     std::cout << "Ros Time again: " << t1_ros_again << std::endl;
-    
+
 
   }
 };
