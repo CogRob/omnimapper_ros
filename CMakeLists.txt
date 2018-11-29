@@ -86,8 +86,12 @@ foreach(dir ${dirs})
   message(STATUS "link dir='${dir}'")
 endforeach()
 
+# Build ROS Messages and Services
+add_message_files(FILES
+  ObjectInfo.msg
+  ObjectInfos.msg
+)
 
-# ROS Services
 add_service_files(
   FILES
   OutputMapTSDF.srv
@@ -96,7 +100,11 @@ add_service_files(
   WriteTrajectoryFile.srv
 )
 
-generate_messages(DEPENDENCIES geometry_msgs std_msgs)
+generate_messages(DEPENDENCIES 
+  geometry_msgs 
+  std_msgs
+  sensor_msgs
+)
 
 catkin_package(
     DEPENDS ${RUN_DEPENDS}
