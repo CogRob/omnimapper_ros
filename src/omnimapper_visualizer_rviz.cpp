@@ -91,6 +91,10 @@ omnimapper::OmniMapperVisualizerRViz<PointT>::OmniMapperVisualizerRViz (omnimapp
 
   object_observation_pub_ = nh_.advertise<sensor_msgs::PointCloud2> ("object_observations", 0);
 
+  map_object_infos_pub_ = nh_.advertise<omnimapper_ros::ObjectInfos> ("map_object_infos", 0);
+
+  curr_object_infos_pub_ = nh_.advertise<omnimapper_ros::ObjectInfos> ("curr_object_infos", 0);
+
   draw_icp_clouds_srv_ = nh_.advertiseService ("draw_icp_clouds", &omnimapper::OmniMapperVisualizerRViz<PointT>::drawICPCloudsCallback, this);
 
   //draw_object_observation_cloud_srv_ = nh_.advertiseService ("draw_object_observations", &omnimapper::OmniMapperVisualizerRViz<PointT>::drawObjectObservationCloud, this);
@@ -992,6 +996,28 @@ omnimapper::OmniMapperVisualizerRViz<PointT>::clusterCloudCallback (std::vector<
   cloud_msg.header.frame_id = "/camera_rgb_optical_frame";
   cloud_msg.header.stamp = ptime2rostime (t);
   segmented_clusters_pub_.publish (cloud_msg);
+
+  // Publish as object infos too
+  omnimapper_ros::ObjectInfos object_infos;
+  for (int i = 0; i < clusters.size(); i++)
+  {
+    omnimapper_ros::ObjectInfo object_info;
+
+    Eigen::Vector4f min_pt;
+    Eigen::Vector4f max_pt;
+    pcl::getMinMax3D ((*clusters[i]), min_pt, max_pt);
+
+    Eigen::Vector4f centroid;
+    pcl::compute3DCentroid ((*clusters[i]), centroid);
+
+    object_info.centroid.x = centroid[0];
+    object_info.centroid.y = centroid[1];
+    object_info.centroid.z = centroid[2];
+
+    object_infos.objects.push_back(object_info);
+  }
+  curr_object_infos_pub_.publish(object_infos);
+
 }
 
 /*
@@ -1318,6 +1344,182 @@ omnimapper::OmniMapperVisualizerRViz<PointT>::writeTrajectoryFile(omnimapper_ros
 
   return (true);
 }
+
+template<typename PointT> void omnimapper::OmniMapperVisualizerRViz<PointT>::objectCallback (
+    std::map<gtsam::Symbol, ObjectPtr> object_map)
+{
+
+  typename std::map<gtsam::Symbol, ObjectPtr >::iterator it;
+  typename std::multimap<int, gtsam::Symbol> top_objects;
+  typename std::multimap<int, gtsam::Symbol>::iterator obj_iterator;
+  pcl::PointCloud<pcl::PointXYZRGB> aggregate_cloud;
+  pcl::PointCloud<pcl::PointXYZRGB> truncated_map_cloud;
+
+  for (it = object_map.begin (); it != object_map.end (); it++)
+  {
+    gtsam::Symbol sym = it->first;
+    ObjectPtr object = it->second;
+    top_objects.insert(std::pair<int, gtsam::Symbol>(object->clusters_.size(), sym));
+  }
+
+  printf ("[OmniMapperVisualizerRviz]: Filled %d top_objects\n", top_objects.size ());
+  omnimapper_ros::ObjectInfos object_infos;
+
+  int object_count = 0;
+  for (obj_iterator = top_objects.begin (); obj_iterator != top_objects.end ();
+      obj_iterator++)
+  {
+   // if(object_count == 20)break;
+    gtsam::Symbol sym = obj_iterator->second;
+   ObjectPtr object_ptr = object_map.at(sym);
+   printf ("[OmniMapperVisualizerRviz]: Visualizing object %c%d\n", sym.chr(), sym.index());
+
+   omnimapper::Object<PointT> object = *(object_ptr);
+   Cloud optimal_cloud = object.unOptimizedCloud();
+   printf ("[OmniMapperVisualizerRviz]: Size of unoptimal cloud %d\n", optimal_cloud.points.size());
+
+    pcl::copyPointCloud(optimal_cloud, truncated_map_cloud);
+    aggregate_cloud = aggregate_cloud + truncated_map_cloud;
+
+    // Also publish these as  object infos
+    omnimapper_ros::ObjectInfo object_info;
+
+    Eigen::Vector4f min_pt;
+    Eigen::Vector4f max_pt;
+    pcl::getMinMax3D (truncated_map_cloud, min_pt, max_pt);
+
+    Eigen::Vector4f centroid;
+    pcl::compute3DCentroid (truncated_map_cloud, centroid);
+
+    object_info.centroid.x = centroid[0];
+    object_info.centroid.y = centroid[1];
+    object_info.centroid.z = centroid[2];
+
+    object_infos.objects.push_back(object_info);
+
+    object_count++; //counter to process only top K objects
+  }
+
+  printf ("[OmniMapperVisualizerRviz]: Aggregated cloud\n");
+
+  sensor_msgs::PointCloud2 cloud_msg;
+  pcl::toROSMsg(aggregate_cloud, cloud_msg);
+  cloud_msg.header.frame_id = "/world"; ///camera_rgb_optical_frame";
+  cloud_msg.header.stamp = ros::Time::now ();
+  object_modeled_pub_.publish(cloud_msg);
+
+  map_object_infos_pub_.publish(object_infos);
+
+  //{
+    //boost::mutex::scoped_lock lock (object_map_mutex_);
+    //latest_object_map_ = object_map;
+  //}
+
+
+/*
+  view_direction.print("[rviz] view direction: ");
+  view_center.print("[rviz] view center");
+  visualization_msgs::Marker view_marker;
+  view_marker.header.frame_id = "/world";
+  view_marker.header.stamp = ros::Time::now ();
+  view_marker.ns = "camera_view";
+  view_marker.id = 0;
+  view_marker.type = visualization_msgs::Marker::ARROW;
+  view_marker.action = visualization_msgs::Marker::ADD;
+  view_marker.scale.x = 1.0;
+  view_marker.scale.y = 1.0;
+  view_marker.scale.z = 1.0;
+  view_marker.color.a = 0.5;
+  view_marker.color.r = 1.0;
+  view_marker.color.g = 1.0;
+  view_marker.color.b = 1.0;
+  gtsam::Point3 transformed_view_center (view_center.x (), view_center.y (),
+      view_center.z ());
+   publish the camera frustum
+int depth_limit = 3; // frustum culling at 3m
+double vertical_angle = (49/2)*M_PI/180; // kinect vertical FOV=49 degrees
+double horizontal_angle = (57/2)*M_PI/180; // kinect horizontal FOV = 57
+gtsam::Point3 frame_center = transformed_view_center + depth_limit*view_direction;
+frame_center.print("[rviz] frame center");
+geometry_msgs::Point arrow_start;
+  arrow_start.x = transformed_view_center.x();
+  arrow_start.y = transformed_view_center.y();
+  arrow_start.z = transformed_view_center.z();
+  geometry_msgs::Point arrow_end;
+    arrow_end.x = frame_center.x();
+    arrow_end.y = frame_center.y();
+    arrow_end.z = frame_center.z();
+    view_marker.points.push_back(arrow_start);
+    view_marker.points.push_back(arrow_end);
+geometry_msgs::Point p1;
+  p1.x = 0;
+  p1.y = 0;
+  p1.z = 0;
+  geometry_msgs::Point frame_c;
+  frame_c.x = 0;
+  frame_c.y = 0;
+  frame_c.z = depth_limit;
+geometry_msgs::Point p2;
+p2.x = depth_limit*tan(horizontal_angle);
+p2.y = depth_limit*tan(vertical_angle);
+p2.z = depth_limit;
+geometry_msgs::Point p3;
+p3.x = -p2.x                                                                                                                                                                                                               ;
+p3.y = p2.y;
+p3.z = p2.z;
+geometry_msgs::Point p4;
+p4.x = p2.x;
+p4.y = -p2.y;
+p4.z = p2.z;
+geometry_msgs::Point p5;
+p5.x = -p2.x;
+p5.y = -p2.y;
+p5.z = p2.z;
+  visualization_msgs::MarkerArray marker_array;
+  visualization_msgs::Marker frustum_marker;
+  frustum_marker.header.frame_id = "/camera_rgb_optical_frame";
+  frustum_marker.header.stamp = ros::Time::now ();
+  frustum_marker.ns = "camera_frustum";
+  frustum_marker.id = 0;
+  frustum_marker.type = visualization_msgs::Marker::LINE_STRIP;
+  frustum_marker.action = visualization_msgs::Marker::ADD;
+  frustum_marker.points.push_back (p1);
+  frustum_marker.points.push_back (p2);
+  frustum_marker.points.push_back (p4);
+  frustum_marker.points.push_back (p5);
+  frustum_marker.points.push_back (p3);
+  frustum_marker.points.push_back (p2);
+  frustum_marker.points.push_back (p1);
+  frustum_marker.points.push_back (p3);
+  frustum_marker.points.push_back (p1);
+  frustum_marker.points.push_back (p4);
+  frustum_marker.points.push_back (p1);
+  frustum_marker.points.push_back (p5);
+  frustum_marker.scale.x = 0.04;
+ // frustum_marker.scale.y = 1.0;
+ // frustum_marker.scale.z = 1.0;
+  frustum_marker.color.a = 0.5;
+  frustum_marker.color.r = 1.0;
+  frustum_marker.color.g = 1.0;
+  frustum_marker.color.b = 1.0;
+  marker_array.markers.push_back (view_marker);
+  marker_array.markers.push_back (frustum_marker);
+  marker_array_pub_.publish (marker_array);
+*/
+}
+
+template <typename PointT> bool
+omnimapper::OmniMapperVisualizerRViz<PointT>::drawObjectObservationCloud (omnimapper_ros::VisualizeFullCloud::Request &req, omnimapper_ros::VisualizeFullCloud::Response &res)
+{
+  draw_object_observation_cloud_ = true;
+  return (true);
+}
+
+// template <typename PointT> bool
+// omnimapper::OmniMapperVisualizerRViz<PointT>::getMappedObjects ()
+// {
+
+// }
 
 
   // template <typename PointT> void

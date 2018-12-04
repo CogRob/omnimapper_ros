@@ -40,6 +40,8 @@
 #include <omnimapper/icp_plugin.h>
 #include <ros/ros.h>
 #include <tf_conversions/tf_eigen.h>
+#include <omnimapper/object_plugin.h>
+#include <omnimapper/object.h>
 #include <omnimapper_ros/VisualizeFullCloud.h>
 #include <omnimapper_ros/PublishModel.h>
 #include <omnimapper_ros/WriteTrajectoryFile.h>
@@ -49,6 +51,8 @@
 #include <interactive_markers/interactive_marker_server.h>
 #include <interactive_markers/menu_handler.h>
 
+#include <omnimapper_ros/ObjectInfo.h>
+#include <omnimapper_ros/ObjectInfos.h>
 
 namespace omnimapper
 {
@@ -65,6 +69,7 @@ namespace omnimapper
     typedef pcl::PointCloud<pcl::Label> LabelCloud;
     typedef typename LabelCloud::Ptr LabelCloudPtr;
     typedef typename LabelCloud::ConstPtr LabelCloudConstPtr;
+    typedef typename boost::shared_ptr < omnimapper::Object<PointT> > ObjectPtr;
 
     public:
       OmniMapperVisualizerRViz (omnimapper::OmniMapperBase* mapper);
@@ -84,6 +89,10 @@ namespace omnimapper
       void setDrawICPCloudsAlways (bool draw_always) { draw_icp_clouds_always_ = draw_always; if (draw_always) draw_icp_clouds_ = true; }
       void setDrawICPCloudsFullRes (bool full_res) { draw_icp_clouds_full_res_ = full_res; }
 
+      void setObjectPlugin (boost::shared_ptr<omnimapper::ObjectPlugin<PointT> >& object_plugin) { object_plugin_ = object_plugin; }
+      bool drawObjectObservationCloud (omnimapper_ros::VisualizeFullCloud::Request &req, omnimapper_ros::VisualizeFullCloud::Response &res);
+
+
       boost::shared_ptr<interactive_markers::InteractiveMarkerServer> getInteractiveMarkerServerPtr () { return (marker_server_); }
 
       boost::shared_ptr<interactive_markers::MenuHandler> getMenuHandlerPtr () { return (menu_handler_); }
@@ -102,6 +111,9 @@ namespace omnimapper
       //void planarRegionCallback (std::vector<pcl::PlanarRegion<PointT>, Eigen::aligned_allocator<pcl::PlanarRegion<PointT> > > regions, omnimapper::Time t);
 
       bool writeTrajectoryFile(omnimapper_ros::WriteTrajectoryFile::Request &req, omnimapper_ros::WriteTrajectoryFile::Response &res);
+
+      /** \brief objectCallback draws the estimated objects computed by object_plugin */
+      void objectCallback(std::map<gtsam::Symbol, ObjectPtr > object_map);
 
     protected:
       // A ROS Node Handle
@@ -159,9 +171,16 @@ namespace omnimapper
 
       ros::ServiceServer publish_model_srv_;
 
+      std::map<gtsam::Symbol, ObjectPtr> latest_object_map_;
+      ros::Publisher map_object_infos_pub_;
+      ros::Publisher curr_object_infos_pub_;
+      boost::mutex object_map_mutex_;
+
       // ICP Plugin Ref
       boost::shared_ptr<omnimapper::ICPPoseMeasurementPlugin<PointT> > icp_plugin_;
 
+      // Object Plugin Ref
+      boost::shared_ptr<omnimapper::ObjectPlugin<PointT> > object_plugin_;
 
       std::vector<pcl::PlanarRegion<PointT>, Eigen::aligned_allocator<pcl::PlanarRegion<PointT> > > latest_planes_;
 

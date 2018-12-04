@@ -39,6 +39,7 @@
 #include <omnimapper/omnimapper_base.h>
 #include <omnimapper_ros/tf_pose_plugin.h>
 #include <omnimapper/icp_plugin.h>
+#include <omnimapper/object_plugin.h>
 //#include <omnimapper/bounded_plane_plugin.h>
 #include <omnimapper/no_motion_pose_plugin.h>
 //#include <omnimapper/tsdf_output_plugin.h>
@@ -139,7 +140,7 @@ class OmniMapperROS
     //omnimapper::BoundedPlanePlugin<PointT> bounded_plane_plugin_;
 
     // Object Plugin
-    //omnimapper::ObjectPlugin<PointT> object_plugin_;
+    omnimapper::ObjectPlugin<PointT> object_plugin_;
 
     //CSM Plugin
     omnimapper::CanonicalScanMatcherPlugin<sensor_msgs::LaserScan> csm_plugin_;
@@ -217,11 +218,28 @@ class OmniMapperROS
     double plane_angular_noise_;
 
     // Object Plugin Params
-    std::string object_database_location_;
+    //std::string object_database_location_;
+    //bool save_object_models_;
+    std::string object_pcd_location_;
+    bool save_object_pcds_;
     bool object_loop_closures_;
+    bool object_refinement_;
     bool object_landmarks_;
-    bool save_object_models_;
     double object_min_height_;
+    double object_x_noise_;
+    double object_y_noise_;
+    double object_z_noise_;
+    double objobj_x_noise_;
+    double objobj_y_noise_;
+    double objobj_z_noise_;
+
+    double max_cluster_dist_;
+    double max_bbox_volume_;
+    double max_bbox_dim_;
+    double min_curvature_;
+    double min_object_points_;
+    double min_clust_centroid_ptp_dist;
+    double ptp_pt_cull_thresh_;
 
     // Labeled Cloud Plugin Params
     bool use_label_cloud_;

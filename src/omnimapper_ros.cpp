@@ -46,6 +46,7 @@ OmniMapperROS<PointT>::OmniMapperROS (ros::NodeHandle nh)
     no_motion_plugin_ (&omb_),
     icp_plugin_ (&omb_),
     edge_icp_plugin_ (&omb_),
+    object_plugin_ (&omb_),
     //bounded_plane_plugin_ (&omb_), // Comning soon...
     csm_plugin_ (&omb_),
     vis_plugin_ (&omb_),
@@ -57,7 +58,7 @@ OmniMapperROS<PointT>::OmniMapperROS (ros::NodeHandle nh)
   if (debug_)
     ROS_INFO ("OmniMapperROS: Constructing... Loading ROS Params...");
   loadROSParams ();
-  
+
   // Use ROS Time instead of system clock
   omnimapper::GetTimeFunctorPtr time_functor_ptr (new omnimapper::GetROSTimeFunctor ());
   omb_.setTimeFunctor (time_functor_ptr);
@@ -70,13 +71,13 @@ OmniMapperROS<PointT>::OmniMapperROS (ros::NodeHandle nh)
                             gtsam::Point3 (init_x_, init_y_, init_z_));
     omb_.setInitialPose (init_pose);
   }
-  
+
   // Optionally get initial pose from TF
   if (init_pose_from_tf_)
   {
     bool got_tf = false;
     tf::StampedTransform init_transform;
-    
+
     while (!got_tf)
     {
       got_tf = true;
@@ -95,12 +96,12 @@ OmniMapperROS<PointT>::OmniMapperROS (ros::NodeHandle nh)
         got_tf = false;
       }
     }
-    
+
     gtsam::Pose3 init_pose = omnimapper::tf2pose3 (init_transform);
     gtsam::Pose3 init_pose_inv = init_pose.inverse ();
     omb_.setInitialPose (init_pose);
   }
-  
+
   // Add the TF Pose Plugin
   tf_plugin_.setOdomFrameName (odom_frame_name_);
   tf_plugin_.setBaseFrameName (base_frame_name_);
@@ -114,14 +115,14 @@ OmniMapperROS<PointT>::OmniMapperROS (ros::NodeHandle nh)
     boost::shared_ptr<omnimapper::PosePlugin> tf_plugin_ptr (&tf_plugin_);
     omb_.addPosePlugin (tf_plugin_ptr);
   }
-  
+
   // Add the No Motion Plugin (null motion model)
   if (use_no_motion_)
   {
     boost::shared_ptr<omnimapper::PosePlugin> no_motion_ptr (&no_motion_plugin_);
     omb_.addPosePlugin (no_motion_ptr);
   }
-  
+
   // Set up a sensor_to_base functor, for plugins to use
   omnimapper::GetTransformFunctorPtr rgbd_to_base_ptr (new omnimapper::GetTransformFunctorTF (rgbd_frame_name_, base_frame_name_));
   // Optionally disable this, if we don't have TF available
@@ -186,7 +187,46 @@ OmniMapperROS<PointT>::OmniMapperROS (ros::NodeHandle nh)
     organized_segmentation_.setPlanarRegionStampedCallback (plane_cb);
   }
   */
-  
+
+  // Set up the object Plugin
+  if (use_objects_)
+  {
+    object_plugin_.setSensorToBaseFunctor (rgbd_to_base_ptr);
+    object_plugin_.setMinimumClusterHeight (object_min_height_);  //min height of the object above floor
+    object_plugin_.setMaximumClusterDistance(max_cluster_dist_);
+    object_plugin_.setMaximumBboxVolume (max_bbox_volume_);
+    object_plugin_.setMaximumBboxDim(max_bbox_dim_);
+    object_plugin_.setMinimumCurvature(min_curvature_);
+    object_plugin_.setMinimumClustCentroidDist (min_clust_centroid_ptp_dist);
+    object_plugin_.setCullThresh (ptp_pt_cull_thresh_);
+    object_plugin_.setMinimumPoints (min_object_points_);
+    object_plugin_.savePCDs(save_object_pcds_);
+    object_plugin_.setPCDlocation(object_pcd_location_);
+    object_plugin_.spin();
+
+    typename boost::function<
+    void (std::vector<CloudPtr>, omnimapper::Time t,
+     boost::optional<std::vector<pcl::PointIndices> >)> object_cluster_callback =
+    boost::bind (&omnimapper::ObjectPlugin<PointT>::clusterCloudCallback,
+      &object_plugin_, _1, _2, _3);
+    organized_segmentation_.setClusterCloudCallback (object_cluster_callback);
+
+    boost::function<void (std::map<gtsam::Symbol, boost::shared_ptr<omnimapper::Object<PointT> > >)> object_vis_callback = boost::bind (&omnimapper::OmniMapperVisualizerRViz<PointT>::objectCallback, &vis_plugin_, _1);
+    object_plugin_.setVisCallback (object_vis_callback);
+
+    // Set up the Object Plugin with the visualizer
+    boost::shared_ptr<omnimapper::ObjectPlugin<PointT> > obj_ptr (&object_plugin_);
+    vis_plugin_.setObjectPlugin (obj_ptr);
+
+    typename boost::function<
+    void (std::vector<CloudPtr>, omnimapper::Time t,
+     boost::optional<std::vector<pcl::PointIndices> >)> vis_cluster_callback =
+    boost::bind (&omnimapper::OmniMapperVisualizerRViz<PointT>::clusterCloudCallback,
+      &vis_plugin_, _1, _2, _3);
+    organized_segmentation_.setClusterCloudCallback(vis_cluster_callback);
+  }
+
+
   // Optionally use planes in the visualizer
   if (ar_mode_)
   {
@@ -214,21 +254,21 @@ if (use_csm_)
 
   boost::shared_ptr<omnimapper::CanonicalScanMatcherPlugin<sensor_msgs::LaserScan> > csm_ptr (&csm_plugin_);
   csm_vis_plugin_.setCSMPlugin (csm_ptr);
-  
+
   // Install the visualizer
   boost::shared_ptr<omnimapper::OutputPlugin> csm_vis_ptr (&csm_vis_plugin_);
   omb_.addOutputPlugin (csm_vis_ptr);
-   
+
   boost::thread csm_thread (&omnimapper::CanonicalScanMatcherPlugin<sensor_msgs::LaserScan>::spin, &csm_plugin_);
  }
- 
+
 // Set the ICP Plugin on the visualizer
  boost::shared_ptr<omnimapper::ICPPoseMeasurementPlugin<PointT> > icp_ptr (&icp_plugin_);
  vis_plugin_.setICPPlugin (icp_ptr);
- 
+
  // Subscribe to Point Clouds
  pointcloud_sub_ = n_.subscribe (cloud_topic_name_, 1, &OmniMapperROS::cloudCallback, this);  //("/camera/depth/points", 1, &OmniMapperHandheldNode::cloudCallback, this);
- 
+
  // Install the visualizer
  if (use_rviz_plugin_)
  {
@@ -309,6 +349,20 @@ OmniMapperROS<PointT>::loadROSParams ()
             pcl::deg2rad (10.0));
   n_.param ("plane_range_noise", plane_range_noise_, 0.2);
   n_.param ("plane_angular_noise", plane_angular_noise_, 0.26);
+
+  n_.param ("save_object_pcds", save_object_pcds_, true);
+  n_.param ("object_pcd_location", object_pcd_location_,
+            std::string ("/home/"));
+  n_.param ("object_min_height", object_min_height_, 0.3);
+  n_.param ("object_refinement", object_refinement_, true);
+  n_.param ("max_object_dist",  max_cluster_dist_, 3.0);
+  n_.param ("max_object_volume", max_bbox_volume_, 0.5);
+  n_.param ("max_object_dim", max_bbox_dim_, 1.0);
+  n_.param ("min_object_curvature", min_curvature_, 0.05);
+  n_.param ("min_clust_centroid_ptp_distance", min_clust_centroid_ptp_dist,0.5);
+  n_.param ("ptp_pt_cull_thresh", ptp_pt_cull_thresh_,0.02);
+  n_.param ("min_object_points", min_object_points_,1000.0);
+
   n_.param ("tf_trans_noise", tf_trans_noise_, 0.05);
   n_.param ("tf_rot_noise", tf_rot_noise_, pcl::deg2rad (10.0));
   n_.param ("tf_roll_noise", tf_roll_noise_, tf_rot_noise_);
@@ -351,18 +405,18 @@ OmniMapperROS<PointT>::loadROSParams ()
             false);
   n_.param ("evaluation_mode_paused", evaluation_mode_paused_, false);
   n_.param ("evaluation_show_frames", evaluation_show_frames_, true);
-  n_.param ("object_database_location", object_database_location_,
+  /*n_.param ("object_database_location", object_database_location_,
             std::string ("/home/siddharth/kinect/"));
   n_.param ("object_loop_closures", object_loop_closures_, true);
   n_.param ("object_landmarks", object_landmarks_, true);
   n_.param ("save_object_models", save_object_models_, true);
-  n_.param ("object_min_height", object_min_height_, 0.3);
+  n_.param ("object_min_height", object_min_height_, 0.3);*/
   n_.param ("use_organized_segmentation", use_organized_segmentation_, true);
   n_.param ("debug", debug_, false);
   n_.param ("ar_mode", ar_mode_, false);
 }
 
-template<typename PointT> void 
+template<typename PointT> void
 OmniMapperROS<PointT>::cloudCallback (const sensor_msgs::PointCloud2ConstPtr& msg)
 {
   if (debug_)
@@ -393,10 +447,10 @@ OmniMapperROS<PointT>::cloudCallback (const sensor_msgs::PointCloud2ConstPtr& ms
       std::cout << "Calling ICP Plugin with stamp: "
                 << omnimapper::stamp2ptime (cloud->header.stamp) << std::endl;
     }
-        
+
     icp_plugin_.cloudCallback (cloud);
   }
-      
+
   if (use_organized_segmentation_)
   {
     double start_ofe = pcl::getTime ();
@@ -498,9 +552,9 @@ OmniMapperROS<PointT>::publishCurrentPose ()
   omb_.getLatestPose (current_pose, current_time);
   ros::Time current_time_ros = omnimapper::ptime2rostime (current_time);
   tf::Transform current_pose_ros = omnimapper::pose3totf (current_pose);
-  
+
   tf_broadcaster_.sendTransform (tf::StampedTransform (current_pose_ros, ros::Time::now (), "/world", "/current_pose"));
-  
+
 }
 
 template <typename PointT> void
