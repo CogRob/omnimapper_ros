@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(omnimapper_ros)
+
 # Load catkin and all dependencies required for this package
 set(PKG_DEPENDS
   roscpp
@@ -11,17 +12,13 @@ set(PKG_DEPENDS
   laser_geometry
   nodelet
   csm
-  #GTSAM
 )
 
 set(BUILD_DEPENDS cmake_modules ${PKG_DEPENDS})
 set(RUN_DEPENDS ${PKG_DEPENDS})
 
-#TODO: FIX OMNIMAPPER INSTALL
-#set(omnimapper_DIR /home/antonella/omnimapper/omnimapper/build/cmake)
 set(omnimapper_DIR /usr/local/lib/omnimapper)
 
-#set(csm_DIR /home/antonella/ros_packages/src/csm/cmake)
 set(csm_DIR /home/antonella/ros_packages/src/csm/deploy/lib/csm)
 
 
@@ -52,12 +49,6 @@ find_package(PCL 1.7 REQUIRED)
 # Link directories
 link_directories(${csm_LIBRARY_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
-
-# TODO: there is a better way
-link_directories(/home/antonella/omnimapper/omnimapper/build)
-link_directories(/home/antonella/omnimapper/omnimapper/build/organized_segmentation_tools_dev)
-link_directories(/home/antonella/omnimapper/gtsam-4.0/build/gtsam)
-link_directories(/home/antonella/ros_packages/src/csm/deploy/lib)
 
 #set (CMAKE_CXX_STANDARD 11)
 
@@ -100,8 +91,8 @@ add_service_files(
   WriteTrajectoryFile.srv
 )
 
-generate_messages(DEPENDENCIES 
-  geometry_msgs 
+generate_messages(DEPENDENCIES
+  geometry_msgs
   std_msgs
   sensor_msgs
 )
