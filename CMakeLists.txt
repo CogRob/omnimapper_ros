@@ -19,8 +19,8 @@ set(RUN_DEPENDS ${PKG_DEPENDS})
 
 set(omnimapper_DIR /usr/local/lib/omnimapper)
 
-set(csm_DIR /home/antonella/ros_packages/src/csm/deploy/lib/csm)
-
+set(csm_DIR /home/nvidia/ros_ws/src/csm/deploy/lib/csm)
+set(csm_INCLUDE_DIRS /home/nvidia/ros_ws/src/csm/deploy/include)
 
 # Find catkin and required ROS packages
 find_package(catkin REQUIRED COMPONENTS ${BUILD_DEPENDS})
@@ -33,7 +33,7 @@ find_package(GTSAM REQUIRED)
 #include_directories(${GTSAM_INCLUDE_DIRS})
 
 # Find CSM
-#find_package(csm REQUIRED)
+find_package(csm REQUIRED)
 
 # Find Boost
 find_package(Boost REQUIRED COMPONENTS system)
