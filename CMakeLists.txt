@@ -11,6 +11,7 @@ set(PKG_DEPENDS
   geometry_msgs
   laser_geometry
   nodelet
+  pcl_conversions
 )
 
 set(BUILD_DEPENDS cmake_modules ${PKG_DEPENDS})
