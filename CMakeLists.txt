@@ -23,7 +23,7 @@ set(omnimapper_DIR /usr/local/lib/omnimapper)
 find_package(catkin REQUIRED COMPONENTS ${BUILD_DEPENDS})
 
 # Find omnimapper
-find_package(omnimapper REQUIRED)
+# find_package(omnimapper REQUIRED)
 
 # Find GTSAM
 find_package(GTSAM REQUIRED)
