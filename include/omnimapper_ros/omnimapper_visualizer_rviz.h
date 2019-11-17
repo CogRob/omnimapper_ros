@@ -36,18 +36,19 @@
  *
  */
 
-#include <geometry_msgs/Point.h>
-#include <interactive_markers/interactive_marker_server.h>
-#include <interactive_markers/menu_handler.h>
 #include <omnimapper/icp_plugin.h>
 #include <omnimapper/omnimapper_base.h>
-#include <omnimapper_ros/PublishModel.h>
-#include <omnimapper_ros/VisualizeFullCloud.h>
-#include <omnimapper_ros/WriteTrajectoryFile.h>
 #include <pcl/segmentation/planar_region.h>
-#include <ros/ros.h>
-#include <tf_conversions/tf_eigen.h>
-#include <visualization_msgs/MarkerArray.h>
+
+#include "interactive_markers/interactive_marker_server.h"
+#include "interactive_markers/menu_handler.h"
+#include "omnimapper_ros/srv/publish_model.hpp"
+#include "omnimapper_ros/srv/visualize_full_cloud.hpp"
+#include "omnimapper_ros/srv/write_trajectory_file.hpp"
+#include "geometry_msgs/msg/point.hpp"
+#include "rclcpp/rclcpp.hpp"
+#include "tf_conversions/tf_eigen.h"
+#include "visualization_msgs/msg/marker_array.hpp"
 
 namespace omnimapper {
 /** \brief OmniMapperVisualizerRViz is an output plugin for OmniMapper based on
@@ -57,12 +58,12 @@ namespace omnimapper {
  */
 template <typename PointT>
 class OmniMapperVisualizerRViz : public omnimapper::OutputPlugin {
-  typedef typename pcl::PointCloud<PointT> Cloud;
-  typedef typename Cloud::Ptr CloudPtr;
-  typedef typename Cloud::ConstPtr CloudConstPtr;
-  typedef pcl::PointCloud<pcl::Label> LabelCloud;
-  typedef typename LabelCloud::Ptr LabelCloudPtr;
-  typedef typename LabelCloud::ConstPtr LabelCloudConstPtr;
+  using Cloud = typename pcl::PointCloud<PointT>;
+  using CloudPtr = typename Cloud::Ptr;
+  using CloudConstPtr = typename Cloud::ConstPtr;
+  using LabelCloud = pcl::PointCloud<pcl::Label>;
+  using LabelCloudPtr = typename LabelCloud::Ptr;
+  using LabelCloudConstPtr = typename LabelCloud::ConstPtr;
 
  public:
   OmniMapperVisualizerRViz(omnimapper::OmniMapperBase* mapper);
@@ -86,10 +87,10 @@ class OmniMapperVisualizerRViz : public omnimapper::OutputPlugin {
           icp_plugin) {
     icp_plugin_ = icp_plugin;
   }
-  bool drawICPCloudsCallback(omnimapper_ros::VisualizeFullCloud::Request& req,
-                             omnimapper_ros::VisualizeFullCloud::Response& res);
-  bool publishModel(omnimapper_ros::PublishModel::Request& req,
-                    omnimapper_ros::PublishModel::Response& res);
+  bool drawICPCloudsCallback(omnimapper_ros::srv::VisualizeFullCloud::Request& req,
+                             omnimapper_ros::srv::VisualizeFullCloud::Response& res);
+  bool publishModel(omnimapper_ros::srv::PublishModel::Request& req,
+                    omnimapper_ros::srv::PublishModel::Response& res);
   void setDrawPoseArray(bool draw_pose_array) {
     draw_pose_array_ = draw_pose_array;
   }
@@ -122,21 +123,21 @@ class OmniMapperVisualizerRViz : public omnimapper::OutputPlugin {
   /** \brief playPauseCb is used by interactive marker menu to control the
    * mapper's playback */
   void playPauseCb(
-      const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);
+      const visualization_msgs::msg::InteractiveMarkerFeedbackConstPtr& feedback);
 
   void drawMapCloudCb(
-      const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);
+      const visualization_msgs::msg::InteractiveMarkerFeedbackConstPtr& feedback);
 
   void drawPoseMarginalsCb(
-      const visualization_msgs::InteractiveMarkerFeedbackConstPtr& feedback);
+      const visualization_msgs::msg::InteractiveMarkerFeedbackConstPtr& feedback);
 
   // For drawing planes, and use in AR application
   // void planarRegionCallback (std::vector<pcl::PlanarRegion<PointT>,
   // Eigen::aligned_allocator<pcl::PlanarRegion<PointT> > > regions,
   // omnimapper::Time t);
 
-  bool writeTrajectoryFile(omnimapper_ros::WriteTrajectoryFile::Request& req,
-                           omnimapper_ros::WriteTrajectoryFile::Response& res);
+  bool writeTrajectoryFile(omnimapper_ros::srv::WriteTrajectoryFile::Request& req,
+                           omnimapper_ros::srv::WriteTrajectoryFile::Response& res);
 
  protected:
   // A ROS Node Handle

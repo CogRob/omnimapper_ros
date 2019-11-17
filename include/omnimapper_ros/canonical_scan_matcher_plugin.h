@@ -1,17 +1,20 @@
 #pragma once
 
+#include <memory>
+
 #include <gtsam/geometry/Pose3.h>
 #include <gtsam/nonlinear/Symbol.h>
 #include <gtsam/slam/BetweenFactor.h>
 #include <laser_geometry/laser_geometry.h>
 #include <omnimapper/omnimapper_base.h>
 #include <omnimapper/trigger.h>
-#include <omnimapper_ros/canonical_scan.h>
-#include <pcl_conversions/pcl_conversions.h>
-#include <ros/ros.h>
-#include <sensor_msgs/LaserScan.h>
-#include <tf/transform_listener.h>
-#include <visualization_msgs/MarkerArray.h>
+
+#include "omnimapper_ros/canonical_scan.h"
+#include "pcl_conversions/pcl_conversions.h"
+#include "rclcpp/rclcpp.hpp"
+#include "sensor_msgs/msg/laser_scan.hpp"
+#include "tf/transform_listener.h"
+#include "visualization_msgs/msg/marker_array.hpp"
 
 namespace omnimapper {
 /** \brief Canonical Scan Matcher Plugin
@@ -22,10 +25,10 @@ template <typename LScanT>
 class CanonicalScanMatcherPlugin {
   typedef typename boost::shared_ptr<gtsam::BetweenFactor<gtsam::Pose3> >
       BetweenPose3Ptr;
-  typedef typename boost::shared_ptr<sensor_msgs::LaserScan> LaserScanPtr;
-  typedef const typename boost::shared_ptr<sensor_msgs::LaserScan>
+  typedef typename boost::shared_ptr<sensor_msgs::msg::LaserScan> LaserScanPtr;
+  typedef const typename boost::shared_ptr<sensor_msgs::msg::LaserScan>
       LaserScanPConstPtr;
-  typedef typename sensor_msgs::LaserScan LScan;
+  typedef typename sensor_msgs::msg::LaserScan LScan;
 
  public:
   CanonicalScanMatcherPlugin(omnimapper::OmniMapperBase* mapper);
@@ -42,10 +45,10 @@ class CanonicalScanMatcherPlugin {
   // triggered_mode; } void trigger () { triggered_ = true; }
   void setTriggerFunctor(omnimapper::TriggerFunctorPtr ptr) { trigger_ = ptr; }
   LaserScanPConstPtr getLaserScanPtr(gtsam::Symbol sym);
-  sensor_msgs::PointCloud2 getPC2(gtsam::Symbol sym);
+  sensor_msgs::msg::PointCloud2 getPC2(gtsam::Symbol sym);
 
  protected:
-  ros::NodeHandle nh_;
+  std::shared_ptr<rclcpp::Node> ros_node_;
   OmniMapperBase* mapper_;
   tf::TransformListener tf_listener_;
   laser_geometry::LaserProjection projector_;
@@ -54,7 +57,7 @@ class CanonicalScanMatcherPlugin {
   bool initialized_;
   std::map<gtsam::Symbol, LaserScanPtr> lscans_;
   std::map<gtsam::Symbol, gtsam::Point3> lscan_centroids_;
-  std::map<gtsam::Symbol, sensor_msgs::PointCloud2> clouds_;
+  std::map<gtsam::Symbol, sensor_msgs::msg::PointCloud2> clouds_;
   LaserScanPtr current_lscan_;
   bool have_new_lscan_;
   boost::mutex current_cloud_mutex_;
@@ -84,15 +87,15 @@ class CanonicalScanMatcherPlugin {
   // ros::Time triggered_time_;
   tf::Transform base_to_laser_;
   tf::Transform laser_to_base_;
-  ros::Publisher visualization_marker_array_pub_;
-  ros::Publisher laser_scan_msg_pub1_;
-  ros::Publisher laser_scan_msg_pub2_;
+  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr visualization_marker_array_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr laser_scan_msg_pub1_;
+  rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr laser_scan_msg_pub2_;
 };
 
 }  // namespace omnimapper
 
-gtsam::Pose3 doCSM_impl(const sensor_msgs::LaserScan& from_scan,
-                        const sensor_msgs::LaserScan& to_scan,
+gtsam::Pose3 doCSM_impl(const sensor_msgs::msg::LaserScan& from_scan,
+                        const sensor_msgs::msg::LaserScan& to_scan,
                         const gtsam::Pose3& odometry_relative_pose,
                         bool& worked,
                         gtsam::noiseModel::Gaussian::shared_ptr& noise_model,
@@ -101,7 +104,7 @@ gtsam::Pose3 doCSM_impl(const sensor_msgs::LaserScan& from_scan,
                         tf::Transform& base_to_laser_tf,
                         bool laser_mode = true);
 
-sensor_msgs::LaserScan SmoothScan(const sensor_msgs::LaserScanConstPtr& msg_in);
+sensor_msgs::msg::LaserScan SmoothScan(const sensor_msgs::msg::LaserScanConstPtr& msg_in);
 
 gtsam::Point3 GetMeanLaserPoint(
     boost::shared_ptr<pcl::PointCloud<pcl::PointXYZ> > cloud);

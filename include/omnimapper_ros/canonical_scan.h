@@ -11,13 +11,16 @@
 
 #pragma once
 
-#include <omnimapper_ros/csm_math_functions.h>
-#include <omnimapper_ros/include_csm.h>
-#include <ros/ros.h>
+#include <memory>
 #include <gtsam/geometry/Pose2.h>
 #include <gtsam/linear/NoiseModel.h>
-#include <sensor_msgs/LaserScan.h>
-#include <sensor_msgs/PointCloud.h>
+
+#include "omnimapper_ros/csm_math_functions.h"
+#include "omnimapper_ros/include_csm.h"
+#include "rclcpp/rclcpp.hpp"
+#include "sensor_msgs/msg/laser_scan.hpp"
+#include "sensor_msgs/msg/point_cloud.hpp"
+
 namespace scan_tools {
 
 class CanonicalScan {
@@ -30,14 +33,14 @@ class CanonicalScan {
 
  public:
   CanonicalScan();
-  void initParams(ros::NodeHandle& nh_private_);
+  void initParams(std::shared_ptr<rclcpp::Node> ros_node);
   bool processScan(LDP& curr_ldp_scan, LDP& prev_ldp_scan,
                    const gtsam::Pose2& initial_rel_pose,
                    gtsam::Pose2& output_rel_pose,
                    gtsam::noiseModel::Gaussian::shared_ptr& icp_cov);
-  void PointCloudToLDP(const sensor_msgs::PointCloud& cloud,
-                       const sensor_msgs::LaserScan& scan, LDP& ldp);
-  void laserScanToLDP(const sensor_msgs::LaserScan& scan_msg, LDP& ldp);
+  void PointCloudToLDP(const sensor_msgs::msg::PointCloud& cloud,
+                       const sensor_msgs::msg::LaserScan& scan, LDP& ldp);
+  void laserScanToLDP(const sensor_msgs::msg::LaserScan& scan_msg, LDP& ldp);
 };
 
 }  // namespace scan_tools

@@ -5,10 +5,11 @@
 #include <gtsam/slam/BetweenFactor.h>
 #include <omnimapper/omnimapper_base.h>
 #include <omnimapper/pose_plugin.h>
-#include <omnimapper_ros/ros_tf_utils.h>
-#include <omnimapper_ros/ros_time_utils.h>
-#include <ros/ros.h>
-#include <tf/transform_listener.h>
+
+#include "omnimapper_ros/ros_tf_utils.h"
+#include "omnimapper_ros/ros_time_utils.h"
+#include "ros/ros.h"
+#include "tf/transform_listener.h"
 
 namespace omnimapper {
 // Forward Declaration
@@ -22,7 +23,7 @@ class TFPosePlugin : public omnimapper::PosePlugin {
   OmniMapperBase* mapper_;
 
   /** \brief A nodehandle. */
-  ros::NodeHandle nh_;
+  std::shared_ptr<rclcpp::Node> ros_node_;
 
   /** \brief A TF listener. */
   tf::TransformListener tf_listener_;

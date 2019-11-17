@@ -38,13 +38,14 @@
 
 #pragma once
 
-#include <geometry_msgs/Point.h>
 #include <omnimapper/omnimapper_base.h>
-#include <omnimapper_ros/VisualizeFullCloud.h>
-#include <omnimapper_ros/canonical_scan_matcher_plugin.h>
-#include <ros/ros.h>
-#include <tf_conversions/tf_eigen.h>
-#include <visualization_msgs/MarkerArray.h>
+
+#include "geometry_msgs/msg/point.hpp"
+#include "omnimapper_ros/srv/visualize_full_cloud.hpp"
+#include "omnimapper_ros/canonical_scan_matcher_plugin.h"
+#include "rclcpp/rclcpp.hpp"
+#include "tf_conversions/tf_eigen.h"
+#include "visualization_msgs/msg/marker_array.hpp"
 
 namespace omnimapper {
 template <typename LScanT>
@@ -58,21 +59,21 @@ class CSMVisualizerRViz : public omnimapper::OutputPlugin {
           csm_plugin) {
     csm_plugin_ = csm_plugin;
   }
-  bool drawCSMMap(omnimapper_ros::VisualizeFullCloud::Request& req,
-                  omnimapper_ros::VisualizeFullCloud::Response& res);
+  bool drawCSMMap(omnimapper_ros::srv::VisualizeFullCloud::Request& req,
+                  omnimapper_ros::srv::VisualizeFullCloud::Response& res);
 
  protected:
-  ros::NodeHandle nh_;
+  std::shared_ptr<rclcpp::Node> ros_node_;
 
   OmniMapperBase* mapper_;
 
-  ros::Publisher pose_array_pub_;
+  rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr pose_array_pub_;
 
-  ros::Publisher marker_array_pub_;
+  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr marker_array_pub_;
 
-  ros::Publisher map_cloud_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr map_cloud_pub_;
 
-  ros::ServiceServer draw_csm_map_srv_;
+  rclcpp::Service<omnimapper_ros::srv::VisualizeFullCloud>::SharedPtr draw_csm_map_srv_;
 
   boost::shared_ptr<omnimapper::CanonicalScanMatcherPlugin<LScanT> >
       csm_plugin_;

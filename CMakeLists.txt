@@ -10,7 +10,6 @@ set(PKG_DEPENDS
   interactive_markers
   geometry_msgs
   laser_geometry
-  nodelet
   pcl_conversions
 )
 
@@ -116,32 +115,13 @@ add_library(${PROJECT_NAME}
   src/omnimapper_ros.cpp
 )
 
-
 target_link_libraries(
   ${PROJECT_NAME}
   ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${PCL_LIBRARIES}
   omnimapper gtsam organized_segmentation_tools tcmalloc profiler tbb csm)
-
-#add_executable(time_test src/time_test.cpp)
-
-add_library(omnimapper_ros_nodelet src/omnimapper_ros_nodelet.cpp)
-target_link_libraries(
-  omnimapper_ros_nodelet ${PROJECT_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 add_executable(omnimapper_ros_node src/omnimapper_ros_node.cpp)
 target_link_libraries(
   omnimapper_ros_node
   ${PROJECT_NAME} ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${Boost_LIBRARIES}
   omnimapper gtsam tcmalloc profiler)
-
-add_executable(omnimapper_pcd src/omnimapper_ros_pcd.cpp)
-target_link_libraries(
-  omnimapper_pcd
-  ${PROJECT_NAME} ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${Boost_LIBRARIES}
-  omnimapper gtsam tcmalloc tbb)
-
-add_executable(omnimapper_openni src/omnimapper_ros_openni.cpp)
-target_link_libraries(
-  omnimapper_openni
-  ${PROJECT_NAME} ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${Boost_LIBRARIES}
-  omnimapper gtsam tcmalloc tbb)

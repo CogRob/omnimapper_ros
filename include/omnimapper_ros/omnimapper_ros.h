@@ -39,51 +39,52 @@
 #include <gperftools/profiler.h>
 #include <omnimapper/icp_plugin.h>
 #include <omnimapper/omnimapper_base.h>
-#include <omnimapper_ros/tf_pose_plugin.h>
-//#include <omnimapper/bounded_plane_plugin.h>
-#include <omnimapper/no_motion_pose_plugin.h>
-//#include <omnimapper/tsdf_output_plugin.h>
-#include <omnimapper/time.h>
-#include <omnimapper/trigger.h>
-#include <omnimapper_ros/OutputMapTSDF.h>
-#include <omnimapper_ros/canonical_scan_matcher_plugin.h>
-#include <omnimapper_ros/csm_visualizer.h>
-#include <omnimapper_ros/get_transform_functor_tf.h>
-#include <omnimapper_ros/omnimapper_visualizer_rviz.h>
-#include <omnimapper_ros/ros_tf_utils.h>
-#include <organized_segmentation_tools/organized_segmentation_tbb.h>
 #include <pcl/common/time.h>
 #include <pcl/io/openni_grabber.h>
 #include <pcl/io/pcd_grabber.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
-#include <pcl_conversions/pcl_conversions.h>
-#include <tf/transform_broadcaster.h>
-#include <tf/transform_listener.h>
+
+#include "omnimapper_ros/tf_pose_plugin.h"
+//#include "omnimapper/bounded_plane_plugin.h"
+#include "omnimapper/no_motion_pose_plugin.h"
+//#include "omnimapper/tsdf_output_plugin.h"
+#include "omnimapper/time.h"
+#include "omnimapper/trigger.h"
+#include "omnimapper_ros/srv/output_map_tsdf.h"
+#include "omnimapper_ros/canonical_scan_matcher_plugin.h"
+#include "omnimapper_ros/csm_visualizer.h"
+#include "omnimapper_ros/get_transform_functor_tf.h"
+#include "omnimapper_ros/omnimapper_visualizer_rviz.h"
+#include "omnimapper_ros/ros_tf_utils.h"
+#include "organized_segmentation_tools/organized_segmentation_tbb.h"
+#include "pcl_conversions/pcl_conversions.h"
+#include "tf/transform_broadcaster.h"
+#include "tf/transform_listener.h"
 
 #include <boost/filesystem.hpp>
 
 template <typename PointT>
 class OmniMapperROS {
-  typedef pcl::PointCloud<PointT> Cloud;
-  typedef typename Cloud::Ptr CloudPtr;
-  typedef typename Cloud::ConstPtr CloudConstPtr;
-  typedef typename pcl::PointCloud<pcl::Label> LabelCloud;
-  typedef typename LabelCloud::Ptr LabelCloudPtr;
-  typedef typename LabelCloud::ConstPtr LabelCloudConstPtr;
+  using Cloud = pcl::PointCloud<PointT>;
+  using CloudPtr = typename Cloud::Ptr;
+  using CloudConstPtr = typename Cloud::ConstPtr;
+  using LabelCloud = typename pcl::PointCloud<pcl::Label>;
+  using LabelCloudPtr = typename LabelCloud::Ptr;
+  using LabelCloudConstPtr = typename LabelCloud::ConstPtr;
 
  public:
   // Constructor
-  OmniMapperROS(ros::NodeHandle nh);
+  OmniMapperROS(std::shared_ptr<rclcpp::Node> ros_node);
 
   // Load (or reload) ROS Parameters
   void loadROSParams();
 
   // Point Cloud Callback
-  void cloudCallback(const sensor_msgs::PointCloud2ConstPtr& msg);
+  void cloudCallback(const sensor_msgs::msg::PointCloud2ConstPtr& msg);
 
   // Laser Scan Callback
-  void laserScanCallback(const sensor_msgs::LaserScanConstPtr& msg);
+  void laserScanCallback(const sensor_msgs::msg::LaserScanConstPtr& msg);
 
   // Evaluation Timer Callback
   // void evalTimerCallback (const ros::TimerEvent& e);
@@ -95,8 +96,8 @@ class OmniMapperROS {
   void publishCurrentPose();
 
   // Service call for generating a map TSDF
-  bool generateMapTSDFCallback(omnimapper_ros::OutputMapTSDF::Request& req,
-                               omnimapper_ros::OutputMapTSDF::Response& res);
+  bool generateMapTSDFCallback(omnimapper_ros::srv::OutputMapTSDF::Request& req,
+                               omnimapper_ros::srv::OutputMapTSDF::Response& res);
 
   /*
   void runEvaluation (std::string& associated_filename,
@@ -109,7 +110,7 @@ class OmniMapperROS {
 
  protected:
   // ROS Node Handle
-  ros::NodeHandle n_;
+  std::shared_ptr<rclcpp::Node> ros_node_;
 
   // OmniMapper Instance
   omnimapper::OmniMapperBase omb_;
@@ -136,13 +137,13 @@ class OmniMapperROS {
   // omnimapper::ObjectPlugin<PointT> object_plugin_;
 
   // CSM Plugin
-  omnimapper::CanonicalScanMatcherPlugin<sensor_msgs::LaserScan> csm_plugin_;
+  omnimapper::CanonicalScanMatcherPlugin<sensor_msgs::msg::LaserScan> csm_plugin_;
 
   // Visualization
   omnimapper::OmniMapperVisualizerRViz<PointT> vis_plugin_;
 
   // CSM Visualization
-  omnimapper::CSMVisualizerRViz<sensor_msgs::LaserScan> csm_vis_plugin_;
+  omnimapper::CSMVisualizerRViz<sensor_msgs::msg::LaserScan> csm_vis_plugin_;
 
   // TSDF Plugin
   // omnimapper::TSDFOutputPlugin<PointT> tsdf_plugin_;
@@ -157,10 +158,10 @@ class OmniMapperROS {
   tf::TransformBroadcaster tf_broadcaster_;
 
   // Subscribers
-  ros::Subscriber pointcloud_sub_;
-  ros::Subscriber laserScan_sub_;
+  rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr pointcloud_sub_;
+  rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr laserScan_sub_;
 
-  ros::ServiceServer generate_tsdf_srv_;
+  rclcpp::Service<omnimapper_ros::srv::OutputMapTSDF>::SharedPtr generate_tsdf_srv_;
 
   // Mapper config
   bool use_planes_;
@@ -262,7 +263,7 @@ class OmniMapperROS {
   std::string evaluation_output_trajectory_txt_path_;
   bool evaluation_mode_write_trajectory_;
   bool evaluation_mode_write_tsdf_;
-  ros::Timer eval_timer_;
+  rclcpp::Timer eval_timer_;
   bool evaluation_mode_paused_;
   bool use_organized_segmentation_;
   bool evaluation_show_frames_;
