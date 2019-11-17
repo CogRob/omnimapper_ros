@@ -1,6 +1,4 @@
 #pragma once
-#undef min
-#undef max
 
 #include <gtsam/geometry/Point3.h>
 #include <gtsam/geometry/Pose2.h>
