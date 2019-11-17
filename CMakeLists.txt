@@ -27,7 +27,7 @@ find_package(catkin REQUIRED COMPONENTS ${BUILD_DEPENDS})
 
 # Find GTSAM
 find_package(GTSAM REQUIRED)
-include_directories(${GTSAM_INCLUDE_DIRS})
+include_directories(${GTSAM_INCLUDE_DIR})
 
 # Find Boost
 find_package(Boost REQUIRED COMPONENTS system)
