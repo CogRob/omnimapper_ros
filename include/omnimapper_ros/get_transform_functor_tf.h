@@ -1,8 +1,9 @@
 #pragma once
 
 #include <omnimapper/get_transform_functor.h>
-#include "omnimapper_ros/ros_tf_utils.h"
 #include <tf/transform_listener.h>
+
+#include "omnimapper_ros/ros_tf_utils.h"
 
 namespace omnimapper {
 /** \brief GetTransformFunctorTF enables lookup of a (potentially  dynamic)

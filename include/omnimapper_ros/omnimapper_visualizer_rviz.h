@@ -40,12 +40,12 @@
 #include <omnimapper/omnimapper_base.h>
 #include <pcl/segmentation/planar_region.h>
 
+#include "geometry_msgs/msg/point.hpp"
 #include "interactive_markers/interactive_marker_server.h"
 #include "interactive_markers/menu_handler.h"
 #include "omnimapper_ros/srv/publish_model.hpp"
 #include "omnimapper_ros/srv/visualize_full_cloud.hpp"
 #include "omnimapper_ros/srv/write_trajectory_file.hpp"
-#include "geometry_msgs/msg/point.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "tf_conversions/tf_eigen.h"
 #include "visualization_msgs/msg/marker_array.hpp"
@@ -87,8 +87,9 @@ class OmniMapperVisualizerRViz : public omnimapper::OutputPlugin {
           icp_plugin) {
     icp_plugin_ = icp_plugin;
   }
-  bool drawICPCloudsCallback(omnimapper_ros::srv::VisualizeFullCloud::Request& req,
-                             omnimapper_ros::srv::VisualizeFullCloud::Response& res);
+  bool drawICPCloudsCallback(
+      omnimapper_ros::srv::VisualizeFullCloud::Request& req,
+      omnimapper_ros::srv::VisualizeFullCloud::Response& res);
   bool publishModel(omnimapper_ros::srv::PublishModel::Request& req,
                     omnimapper_ros::srv::PublishModel::Response& res);
   void setDrawPoseArray(bool draw_pose_array) {
@@ -123,21 +124,25 @@ class OmniMapperVisualizerRViz : public omnimapper::OutputPlugin {
   /** \brief playPauseCb is used by interactive marker menu to control the
    * mapper's playback */
   void playPauseCb(
-      const visualization_msgs::msg::InteractiveMarkerFeedbackConstPtr& feedback);
+      const visualization_msgs::msg::InteractiveMarkerFeedbackConstPtr&
+          feedback);
 
   void drawMapCloudCb(
-      const visualization_msgs::msg::InteractiveMarkerFeedbackConstPtr& feedback);
+      const visualization_msgs::msg::InteractiveMarkerFeedbackConstPtr&
+          feedback);
 
   void drawPoseMarginalsCb(
-      const visualization_msgs::msg::InteractiveMarkerFeedbackConstPtr& feedback);
+      const visualization_msgs::msg::InteractiveMarkerFeedbackConstPtr&
+          feedback);
 
   // For drawing planes, and use in AR application
   // void planarRegionCallback (std::vector<pcl::PlanarRegion<PointT>,
   // Eigen::aligned_allocator<pcl::PlanarRegion<PointT> > > regions,
   // omnimapper::Time t);
 
-  bool writeTrajectoryFile(omnimapper_ros::srv::WriteTrajectoryFile::Request& req,
-                           omnimapper_ros::srv::WriteTrajectoryFile::Response& res);
+  bool writeTrajectoryFile(
+      omnimapper_ros::srv::WriteTrajectoryFile::Request& req,
+      omnimapper_ros::srv::WriteTrajectoryFile::Response& res);
 
  protected:
   // A ROS Node Handle

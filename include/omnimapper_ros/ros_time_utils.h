@@ -3,8 +3,9 @@
 #ifndef OMNIMAPPER_ROS_TIME_UTILS_H_
 #define OMNIMAPPER_ROS_TIME_UTILS_H_
 
-#include <boost/date_time/posix_time/posix_time.hpp>
 #include <omnimapper/time.h>
+
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 #include "rclcpp/rclcpp.hpp"
 
@@ -22,9 +23,9 @@ rclcpp::Time ptime2rostime(boost::posix_time::ptime p_time);
 class GetROSTimeFunctor : public omnimapper::GetTimeFunctor {
  public:
   GetROSTimeFunctor(std::shared_ptr<rclcpp::Node> ros_node)
-      : ros_node_(ros_node) {
-  }
+      : ros_node_(ros_node) {}
   omnimapper::Time operator()() { return (rostime2ptime(ros_node_->now())); }
+
  private:
   std::shared_ptr<rclcpp::Node> ros_node_;
 };

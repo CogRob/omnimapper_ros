@@ -49,20 +49,20 @@
 //#include "omnimapper/bounded_plane_plugin.h"
 #include "omnimapper/no_motion_pose_plugin.h"
 //#include "omnimapper/tsdf_output_plugin.h"
+#include <boost/filesystem.hpp>
+
 #include "omnimapper/time.h"
 #include "omnimapper/trigger.h"
-#include "omnimapper_ros/srv/output_map_tsdf.h"
 #include "omnimapper_ros/canonical_scan_matcher_plugin.h"
 #include "omnimapper_ros/csm_visualizer.h"
 #include "omnimapper_ros/get_transform_functor_tf.h"
 #include "omnimapper_ros/omnimapper_visualizer_rviz.h"
 #include "omnimapper_ros/ros_tf_utils.h"
+#include "omnimapper_ros/srv/output_map_tsdf.h"
 #include "organized_segmentation_tools/organized_segmentation_tbb.h"
 #include "pcl_conversions/pcl_conversions.h"
 #include "tf/transform_broadcaster.h"
 #include "tf/transform_listener.h"
-
-#include <boost/filesystem.hpp>
 
 template <typename PointT>
 class OmniMapperROS {
@@ -96,8 +96,9 @@ class OmniMapperROS {
   void publishCurrentPose();
 
   // Service call for generating a map TSDF
-  bool generateMapTSDFCallback(omnimapper_ros::srv::OutputMapTSDF::Request& req,
-                               omnimapper_ros::srv::OutputMapTSDF::Response& res);
+  bool generateMapTSDFCallback(
+      omnimapper_ros::srv::OutputMapTSDF::Request& req,
+      omnimapper_ros::srv::OutputMapTSDF::Response& res);
 
   /*
   void runEvaluation (std::string& associated_filename,
@@ -137,7 +138,8 @@ class OmniMapperROS {
   // omnimapper::ObjectPlugin<PointT> object_plugin_;
 
   // CSM Plugin
-  omnimapper::CanonicalScanMatcherPlugin<sensor_msgs::msg::LaserScan> csm_plugin_;
+  omnimapper::CanonicalScanMatcherPlugin<sensor_msgs::msg::LaserScan>
+      csm_plugin_;
 
   // Visualization
   omnimapper::OmniMapperVisualizerRViz<PointT> vis_plugin_;
@@ -158,10 +160,12 @@ class OmniMapperROS {
   tf::TransformBroadcaster tf_broadcaster_;
 
   // Subscribers
-  rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr pointcloud_sub_;
+  rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr
+      pointcloud_sub_;
   rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr laserScan_sub_;
 
-  rclcpp::Service<omnimapper_ros::srv::OutputMapTSDF>::SharedPtr generate_tsdf_srv_;
+  rclcpp::Service<omnimapper_ros::srv::OutputMapTSDF>::SharedPtr
+      generate_tsdf_srv_;
 
   // Mapper config
   bool use_planes_;

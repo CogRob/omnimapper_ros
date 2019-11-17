@@ -11,9 +11,10 @@
 
 #pragma once
 
-#include <memory>
 #include <gtsam/geometry/Pose2.h>
 #include <gtsam/linear/NoiseModel.h>
+
+#include <memory>
 
 #include "omnimapper_ros/csm_math_functions.h"
 #include "omnimapper_ros/include_csm.h"

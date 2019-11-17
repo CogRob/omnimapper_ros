@@ -1,13 +1,13 @@
 #pragma once
 
-#include <memory>
-
 #include <gtsam/geometry/Pose3.h>
 #include <gtsam/nonlinear/Symbol.h>
 #include <gtsam/slam/BetweenFactor.h>
 #include <laser_geometry/laser_geometry.h>
 #include <omnimapper/omnimapper_base.h>
 #include <omnimapper/trigger.h>
+
+#include <memory>
 
 #include "omnimapper_ros/canonical_scan.h"
 #include "pcl_conversions/pcl_conversions.h"
@@ -87,9 +87,12 @@ class CanonicalScanMatcherPlugin {
   // ros::Time triggered_time_;
   tf::Transform base_to_laser_;
   tf::Transform laser_to_base_;
-  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr visualization_marker_array_pub_;
-  rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr laser_scan_msg_pub1_;
-  rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr laser_scan_msg_pub2_;
+  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr
+      visualization_marker_array_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr
+      laser_scan_msg_pub1_;
+  rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr
+      laser_scan_msg_pub2_;
 };
 
 }  // namespace omnimapper
@@ -104,7 +107,8 @@ gtsam::Pose3 doCSM_impl(const sensor_msgs::msg::LaserScan& from_scan,
                         tf::Transform& base_to_laser_tf,
                         bool laser_mode = true);
 
-sensor_msgs::msg::LaserScan SmoothScan(const sensor_msgs::msg::LaserScanConstPtr& msg_in);
+sensor_msgs::msg::LaserScan SmoothScan(
+    const sensor_msgs::msg::LaserScanConstPtr& msg_in);
 
 gtsam::Point3 GetMeanLaserPoint(
     boost::shared_ptr<pcl::PointCloud<pcl::PointXYZ> > cloud);

@@ -41,8 +41,8 @@
 #include <omnimapper/omnimapper_base.h>
 
 #include "geometry_msgs/msg/point.hpp"
-#include "omnimapper_ros/srv/visualize_full_cloud.hpp"
 #include "omnimapper_ros/canonical_scan_matcher_plugin.h"
+#include "omnimapper_ros/srv/visualize_full_cloud.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "tf_conversions/tf_eigen.h"
 #include "visualization_msgs/msg/marker_array.hpp"
@@ -69,11 +69,13 @@ class CSMVisualizerRViz : public omnimapper::OutputPlugin {
 
   rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr pose_array_pub_;
 
-  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr marker_array_pub_;
+  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr
+      marker_array_pub_;
 
   rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr map_cloud_pub_;
 
-  rclcpp::Service<omnimapper_ros::srv::VisualizeFullCloud>::SharedPtr draw_csm_map_srv_;
+  rclcpp::Service<omnimapper_ros::srv::VisualizeFullCloud>::SharedPtr
+      draw_csm_map_srv_;
 
   boost::shared_ptr<omnimapper::CanonicalScanMatcherPlugin<LScanT> >
       csm_plugin_;
