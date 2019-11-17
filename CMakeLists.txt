@@ -122,10 +122,6 @@ target_link_libraries(
   ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${PCL_LIBRARIES}
   omnimapper gtsam organized_segmentation_tools tcmalloc profiler tbb csm)
 
-add_dependencies(
-  ${PROJECT_NAME}
-  ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${catkin_EXPORTED_TARGETS})
-
 #add_executable(time_test src/time_test.cpp)
 
 add_library(omnimapper_ros_nodelet src/omnimapper_ros_nodelet.cpp)

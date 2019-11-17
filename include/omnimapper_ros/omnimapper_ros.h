@@ -36,13 +36,13 @@
  *
  */
 
+#include <gperftools/profiler.h>
 #include <omnimapper/icp_plugin.h>
 #include <omnimapper/omnimapper_base.h>
 #include <omnimapper_ros/tf_pose_plugin.h>
 //#include <omnimapper/bounded_plane_plugin.h>
 #include <omnimapper/no_motion_pose_plugin.h>
 //#include <omnimapper/tsdf_output_plugin.h>
-#include <google/profiler.h>
 #include <omnimapper/time.h>
 #include <omnimapper/trigger.h>
 #include <omnimapper_ros/OutputMapTSDF.h>

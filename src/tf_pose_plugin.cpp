@@ -53,7 +53,7 @@ gtsam::BetweenFactor<gtsam::Pose3>::shared_ptr TFPosePlugin::addRelativePose(
   }
 
   if (debug_) {
-    printf("TFPosePlugin: Adding factor between %d and %d\n", sym1.index(),
+    printf("TFPosePlugin: Adding factor between %zu and %zu\n", sym1.index(),
            sym2.index());
     printf("TFPosePlugin: Relative transform: %lf %lf %lf\n", relative_pose.x(),
            relative_pose.y(), relative_pose.z());

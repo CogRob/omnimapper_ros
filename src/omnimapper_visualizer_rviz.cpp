@@ -418,8 +418,8 @@ void omnimapper::OmniMapperVisualizerRViz<PointT>::spinOnce() {
       // pose.print ("SAM Pose: ");
       std::cout << "Map Tform: " << map_tform << std::endl;
       pcl::transformPointCloud(*frame_cloud, *map_cloud, map_tform);
-      sprintf(frame_name, "x_%d", key_symbol.index());
-      printf("name: x_%d\n", key_symbol.index());
+      sprintf(frame_name, "x_%zu", key_symbol.index());
+      printf("name: x_%zu\n", key_symbol.index());
 
       pcl::PointCloud<pcl::PointXYZRGB>::Ptr rgb_map_cloud(
           new pcl::PointCloud<pcl::PointXYZRGB>());
@@ -972,7 +972,7 @@ template <typename PointT>
 void omnimapper::OmniMapperVisualizerRViz<PointT>::clusterCloudCallback(
     std::vector<CloudPtr> clusters, omnimapper::Time t,
     boost::optional<std::vector<pcl::PointIndices> > indices) {
-  printf("Omnimappervisualizerrviz: Got %d clusters\n", clusters.size());
+  printf("Omnimappervisualizerrviz: Got %zu clusters\n", clusters.size());
 
   if (clusters.size() == 0) return;
 
@@ -989,7 +989,7 @@ void omnimapper::OmniMapperVisualizerRViz<PointT>::clusterCloudCallback(
     // aggregate_cloud += ((*(clusters[i])));
 
     if (clusters[i]->points.size() > 0) {
-      printf("Cluster %d has %d points\n", i, clusters[i]->points.size());
+      printf("Cluster %d has %zu points\n", i, clusters[i]->points.size());
       color_cluster.resize(clusters[i]->points.size());
       pcl::copyPointCloud((*(clusters[i])), color_cluster);
       for (int j = 0; j < color_cluster.points.size(); j++) {

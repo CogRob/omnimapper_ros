@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
     }
   }
   sort(pcd_files.begin(), pcd_files.end());
-  printf("Found %d PCDs.\n", pcd_files.size());
+  printf("Found %zu PCDs.\n", pcd_files.size());
 
   //  Start calling cloud CB when ready
   bool done = false;
