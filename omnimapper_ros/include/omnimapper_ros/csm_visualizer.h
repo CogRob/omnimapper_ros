@@ -46,13 +46,16 @@
 #include "omnimapper_ros_msgs/srv/visualize_full_cloud.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "tf2_eigen/tf2_eigen.h"
+#include "tf2_ros/buffer.h"
 #include "visualization_msgs/msg/marker_array.hpp"
 
 namespace omnimapper {
 template <typename LScanT>
 class CSMVisualizerRViz : public omnimapper::OutputPlugin {
  public:
-  CSMVisualizerRViz(omnimapper::OmniMapperBase* mapper);
+  CSMVisualizerRViz(omnimapper::OmniMapperBase* mapper,
+                    std::shared_ptr<rclcpp::Node> ros_node,
+                    std::shared_ptr<tf2_ros::Buffer> tf_buffer);
   void update(boost::shared_ptr<gtsam::Values>& vis_values,
               boost::shared_ptr<gtsam::NonlinearFactorGraph>& vis_graph);
   void setCSMPlugin(
@@ -60,11 +63,13 @@ class CSMVisualizerRViz : public omnimapper::OutputPlugin {
           csm_plugin) {
     csm_plugin_ = csm_plugin;
   }
-  bool drawCSMMap(omnimapper_ros_msgs::srv::VisualizeFullCloud::Request& req,
-                  omnimapper_ros_msgs::srv::VisualizeFullCloud::Response& res);
+  bool drawCSMMap(
+      const omnimapper_ros_msgs::srv::VisualizeFullCloud::Request& req,
+      omnimapper_ros_msgs::srv::VisualizeFullCloud::Response& res);
 
  protected:
   std::shared_ptr<rclcpp::Node> ros_node_;
+  std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
 
   OmniMapperBase* mapper_;
 

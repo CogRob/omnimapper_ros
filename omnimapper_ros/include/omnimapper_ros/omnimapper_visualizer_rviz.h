@@ -64,7 +64,9 @@ class OmniMapperVisualizerRViz : public omnimapper::OutputPlugin {
   using LabelCloudConstPtr = typename LabelCloud::ConstPtr;
 
  public:
-  OmniMapperVisualizerRViz(omnimapper::OmniMapperBase* mapper);
+  OmniMapperVisualizerRViz(omnimapper::OmniMapperBase* mapper,
+                           std::shared_ptr<rclcpp::Node> ros_node,
+                           std::shared_ptr<tf2_ros::Buffer> tf_buffer);
   void update(boost::shared_ptr<gtsam::Values>& vis_values,
               boost::shared_ptr<gtsam::NonlinearFactorGraph>& vis_graph);
   void spinOnce();
@@ -89,9 +91,9 @@ class OmniMapperVisualizerRViz : public omnimapper::OutputPlugin {
     icp_plugin_ = icp_plugin;
   }
   bool drawICPCloudsCallback(
-      omnimapper_ros_msgs::srv::VisualizeFullCloud::Request& req,
+      const omnimapper_ros_msgs::srv::VisualizeFullCloud::Request& req,
       omnimapper_ros_msgs::srv::VisualizeFullCloud::Response& res);
-  bool publishModel(omnimapper_ros_msgs::srv::PublishModel::Request& req,
+  bool publishModel(const omnimapper_ros_msgs::srv::PublishModel::Request& req,
                     omnimapper_ros_msgs::srv::PublishModel::Response& res);
   void setDrawPoseArray(bool draw_pose_array) {
     draw_pose_array_ = draw_pose_array;
@@ -110,18 +112,14 @@ class OmniMapperVisualizerRViz : public omnimapper::OutputPlugin {
     draw_icp_clouds_full_res_ = full_res;
   }
 
-  // For drawing planes, and use in AR application
-  // void planarRegionCallback (std::vector<pcl::PlanarRegion<PointT>,
-  // Eigen::aligned_allocator<pcl::PlanarRegion<PointT> > > regions,
-  // omnimapper::Time t);
-
   bool writeTrajectoryFile(
-      omnimapper_ros_msgs::srv::WriteTrajectoryFile::Request& req,
+      const omnimapper_ros_msgs::srv::WriteTrajectoryFile::Request& req,
       omnimapper_ros_msgs::srv::WriteTrajectoryFile::Response& res);
 
  protected:
-  // A ROS Node
+  // A ROS Node and TF tools.
   std::shared_ptr<rclcpp::Node> ros_node_;
+  std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
 
   // A reference to a mapper instance
   OmniMapperBase* mapper_;

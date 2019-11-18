@@ -3,7 +3,7 @@
 #include <gtsam/geometry/Pose3.h>
 
 #include "rclcpp/rclcpp.hpp"
-#include "tf2/buffer_core.h"
+#include "tf2_ros/buffer.h"
 
 namespace omnimapper {
 

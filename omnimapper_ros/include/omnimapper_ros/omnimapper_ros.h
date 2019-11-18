@@ -38,30 +38,29 @@
 
 #include <gperftools/profiler.h>
 #include <omnimapper/icp_plugin.h>
+#include <omnimapper/no_motion_pose_plugin.h>
 #include <omnimapper/omnimapper_base.h>
+#include <omnimapper/time.h>
+#include <omnimapper/trigger.h>
 #include <pcl/common/time.h>
 #include <pcl/io/pcd_grabber.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 
-#include "omnimapper_ros/tf_pose_plugin.h"
-//#include "omnimapper/bounded_plane_plugin.h"
-#include "omnimapper/no_motion_pose_plugin.h"
-//#include "omnimapper/tsdf_output_plugin.h"
 #include <boost/filesystem.hpp>
 
-#include "omnimapper/time.h"
-#include "omnimapper/trigger.h"
 #include "omnimapper_ros/canonical_scan_matcher_plugin.h"
 #include "omnimapper_ros/csm_visualizer.h"
 #include "omnimapper_ros/get_transform_functor_tf.h"
 #include "omnimapper_ros/omnimapper_visualizer_rviz.h"
 #include "omnimapper_ros/ros_tf_utils.h"
+#include "omnimapper_ros/tf_pose_plugin.h"
 #include "omnimapper_ros_msgs/srv/output_map_tsdf.hpp"
 #include "organized_segmentation_tools/organized_segmentation_tbb.h"
 #include "pcl_conversions/pcl_conversions.h"
 #include "sensor_msgs/msg/laser_scan.hpp"
 #include "sensor_msgs/msg/point_cloud2.hpp"
+#include "tf2_ros/buffer.h"
 #include "tf2_ros/transform_broadcaster.h"
 #include "tf2_ros/transform_listener.h"
 
@@ -98,21 +97,21 @@ class OmniMapperROS {
 
   // Service call for generating a map TSDF
   bool generateMapTSDFCallback(
-      omnimapper_ros_msgs::srv::OutputMapTSDF::Request& req,
+      const omnimapper_ros_msgs::srv::OutputMapTSDF::Request& req,
       omnimapper_ros_msgs::srv::OutputMapTSDF::Response& res);
 
-  /*
-  void runEvaluation (std::string& associated_filename,
-                      std::string& groundtruth_filename,
-                      std::string& pcd_path,
-                      std::string& output_trajectory_filename,
-                      std::string& output_timing_filename);
-  */
   void resetEvaluation();
 
  protected:
   // ROS Node Handle
   std::shared_ptr<rclcpp::Node> ros_node_;
+
+  // TF Listener
+  std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
+  tf2_ros::TransformListener tf_listener_;
+
+  // TF Broadcaster
+  tf2_ros::TransformBroadcaster tf_broadcaster_;
 
   // OmniMapper Instance
   omnimapper::OmniMapperBase omb_;
@@ -156,13 +155,10 @@ class OmniMapperROS {
   // Organized Feature Extraction
   cogrob::OrganizedSegmentationTBB<PointT> organized_segmentation_;
 
-  // TF Listener  (for initialization)
-  tf2_ros::TransformListener tf_listener_;
-  tf2_ros::TransformBroadcaster tf_broadcaster_;
-
   // Subscribers
   rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr
       pointcloud_sub_;
+
   rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr laserScan_sub_;
 
   rclcpp::Service<omnimapper_ros_msgs::srv::OutputMapTSDF>::SharedPtr

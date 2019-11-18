@@ -1,9 +1,9 @@
 #pragma once
 
 #include <omnimapper/get_transform_functor.h>
-#include <tf2_ros/transform_listener.h>
 
 #include "omnimapper_ros/ros_tf_utils.h"
+#include "tf2_ros/buffer.h"
 
 namespace omnimapper {
 /** \brief GetTransformFunctorTF enables lookup of a (potentially  dynamic)
@@ -12,12 +12,16 @@ namespace omnimapper {
  */
 class GetTransformFunctorTF : public GetTransformFunctor {
  public:
-  GetTransformFunctorTF(std::string sensor_frame_name,
-                        std::string base_frame_name);
+  GetTransformFunctorTF(const std::string& sensor_frame_name,
+                        const std::string& base_frame_name,
+                        std::shared_ptr<rclcpp::Node> ros_node,
+                        std::shared_ptr<tf2_ros::Buffer> tf_buffer);
   Eigen::Affine3d operator()(omnimapper::Time t);
 
  protected:
-  tf2_ros::TransformListener tf_listener_;
+  std::shared_ptr<rclcpp::Node> ros_node_;
+  std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
+
   std::string sensor_frame_name_;
   std::string base_frame_name_;
 };

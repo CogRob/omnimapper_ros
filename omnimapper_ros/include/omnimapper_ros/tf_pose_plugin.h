@@ -9,7 +9,7 @@
 #include "omnimapper_ros/ros_tf_utils.h"
 #include "omnimapper_ros/ros_time_utils.h"
 #include "rclcpp/rclcpp.hpp"
-#include "tf2_ros/transform_listener.h"
+#include "tf2_ros/buffer.h"
 
 namespace omnimapper {
 // Forward Declaration
@@ -17,6 +17,7 @@ class OmniMapperBase;
 
 /** \brief TFPosePlugin is used to add constraints between consecutive poses in
  * a SLAM problem, such as odometry. */
+
 class TFPosePlugin : public omnimapper::PosePlugin {
  protected:
   /** \brief A reference to the mapper we're a plugin for. */
@@ -26,8 +27,7 @@ class TFPosePlugin : public omnimapper::PosePlugin {
   std::shared_ptr<rclcpp::Node> ros_node_;
 
   /** \brief A TF listener. */
-  tf2_ros::Buffer tf_buffer_;
-  tf2_ros::TransformListener tf_listener_;
+  std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
 
   std::string odom_frame_name_;
 
@@ -43,7 +43,9 @@ class TFPosePlugin : public omnimapper::PosePlugin {
   bool debug_;
 
  public:
-  TFPosePlugin(omnimapper::OmniMapperBase* mapper);
+  TFPosePlugin(omnimapper::OmniMapperBase* mapper,
+               std::shared_ptr<rclcpp::Node> ros_node,
+               std::shared_ptr<tf2_ros::Buffer> tf_buffer);
 
   gtsam::BetweenFactor<gtsam::Pose3>::shared_ptr addRelativePose(
       boost::posix_time::ptime t1, gtsam::Symbol sym1,

@@ -6,7 +6,7 @@
 //#include <gtsam/linear/SharedDiagonal.h>
 #include <gtsam/linear/NoiseModel.h>
 
-#include "tf2/buffer_core.h"
+#include "tf2_ros/buffer.h"
 
 /*!
  *\brief Sees if the displacement between these two poses exceeds distance

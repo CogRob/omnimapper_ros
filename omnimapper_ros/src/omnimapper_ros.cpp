@@ -508,7 +508,7 @@ void OmniMapperROS<PointT>::publishMapToOdom() {
           .inverse();  // tf::Transform (tf::Quaternion (odom_to_map.getRotation
                        // ()), tf::Point (odom_to_map.getOrigin ())
   tf_broadcaster_.sendTransform(tf::StampedTransform(
-      map_to_odom, ros::Time::now(), "/world", odom_frame_name_));
+      map_to_odom, ros::Time::now(), "/map", odom_frame_name_));
 }
 
 template <typename PointT>
@@ -520,7 +520,7 @@ void OmniMapperROS<PointT>::publishCurrentPose() {
   tf::Transform current_pose_ros = omnimapper::pose3totf(current_pose);
 
   tf_broadcaster_.sendTransform(tf::StampedTransform(
-      current_pose_ros, ros::Time::now(), "/world", "/current_pose"));
+      current_pose_ros, ros::Time::now(), "/map", "/current_pose"));
 }
 
 template <typename PointT>
