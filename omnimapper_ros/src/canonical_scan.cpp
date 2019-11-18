@@ -13,7 +13,8 @@
 
 namespace scan_tools {
 
-CanonicalScan::CanonicalScan(std::shared_ptr<rclcpp::Node> ros_node) : ros_node_(ros_node){
+CanonicalScan::CanonicalScan(std::shared_ptr<rclcpp::Node> ros_node)
+    : ros_node_(ros_node) {
   input_.laser[0] = 0.0;
   input_.laser[1] = 0.0;
   input_.laser[2] = 0.0;
@@ -49,12 +50,12 @@ void CanonicalScan::initParams() {
 
   // Maximum angular displacement between scans
   if (!ros_node_->get_parameter("max_angular_correction_deg",
-                            input_.max_angular_correction_deg))
+                                input_.max_angular_correction_deg))
     input_.max_angular_correction_deg = 45.0;
 
   // Maximum translation between scans (m)
   if (!ros_node_->get_parameter("max_linear_correction",
-                            input_.max_linear_correction))
+                                input_.max_linear_correction))
     input_.max_linear_correction = 0.50;
 
   // Maximum ICP cycle iterations
@@ -71,7 +72,7 @@ void CanonicalScan::initParams() {
 
   // Maximum distance for a correspondence to be valid
   if (!ros_node_->get_parameter("max_correspondence_dist",
-                            input_.max_correspondence_dist))
+                                input_.max_correspondence_dist))
     input_.max_correspondence_dist = 0.3;
 
   // Noise in the scan (m)
@@ -86,7 +87,7 @@ void CanonicalScan::initParams() {
 
   // Restart: Threshold for restarting
   if (!ros_node_->get_parameter("restart_threshold_mean_error",
-                            input_.restart_threshold_mean_error))
+                                input_.restart_threshold_mean_error))
     input_.restart_threshold_mean_error = 0.01;
 
   // Restart: displacement for restarting. (m)
@@ -99,17 +100,17 @@ void CanonicalScan::initParams() {
 
   // Max distance for staying in the same clustering
   if (!ros_node_->get_parameter("clustering_threshold",
-                            input_.clustering_threshold))
+                                input_.clustering_threshold))
     input_.clustering_threshold = 0.25;
 
   // Number of neighbour rays used to estimate the orientation
   if (!ros_node_->get_parameter("orientation_neighbourhood",
-                            input_.orientation_neighbourhood))
+                                input_.orientation_neighbourhood))
     input_.orientation_neighbourhood = 20;
 
   // If 0, it's vanilla ICP
   if (!ros_node_->get_parameter("use_point_to_line_distance",
-                            input_.use_point_to_line_distance))
+                                input_.use_point_to_line_distance))
     input_.use_point_to_line_distance = 0;
 
   // Discard correspondences based on the angles
@@ -118,7 +119,7 @@ void CanonicalScan::initParams() {
 
   // Discard correspondences based on the angles - threshold angle, in degrees
   if (!ros_node_->get_parameter("do_alpha_test_thresholdDeg",
-                            input_.do_alpha_test_thresholdDeg))
+                                input_.do_alpha_test_thresholdDeg))
     input_.do_alpha_test_thresholdDeg = 20.0;
 
   // Percentage of correspondences to consider: if 0.9,
@@ -135,11 +136,11 @@ void CanonicalScan::initParams() {
   //  4) Discard correspondences over the threshold.
   //  This is useful to be conservative; yet remove the biggest errors.
   if (!ros_node_->get_parameter("outliers_adaptive_order",
-                            input_.outliers_adaptive_order))
+                                input_.outliers_adaptive_order))
     input_.outliers_adaptive_order = 0.7;
 
   if (!ros_node_->get_parameter("outliers_adaptive_mult",
-                            input_.outliers_adaptive_mult))
+                                input_.outliers_adaptive_mult))
     input_.outliers_adaptive_mult = 2.0;
 
   // If you already have a guess of the solution, you can compute the polar
@@ -148,22 +149,24 @@ void CanonicalScan::initParams() {
   // not a monotone function of the readings index, it means that the
   // surface is not visible in the next position. If it is not visible,
   // then we don't use it for matching.
-  if (!ros_node_->get_parameter("do_visibility_test", input_.do_visibility_test))
+  if (!ros_node_->get_parameter("do_visibility_test",
+                                input_.do_visibility_test))
     input_.do_visibility_test = 0;
 
   // no two points in laser_sens can have the same corr.
   if (!ros_node_->get_parameter("outliers_remove_doubles",
-                            input_.outliers_remove_doubles))
+                                input_.outliers_remove_doubles))
     input_.outliers_remove_doubles = 1;
 
   // If 1, computes the covariance of ICP using the method
   // http://purl.org/censi/2006/icpcov
   if (!ros_node_->get_parameter("do_compute_covariance",
-                            input_.do_compute_covariance))
+                                input_.do_compute_covariance))
     input_.do_compute_covariance = 1;
 
   // Checks that find_correspondences_tricks gives the right answer
-  if (!ros_node_->get_parameter("debug_verify_tricks", input_.debug_verify_tricks))
+  if (!ros_node_->get_parameter("debug_verify_tricks",
+                                input_.debug_verify_tricks))
     input_.debug_verify_tricks = 0;
 
   // If 1, the field 'true_alpha' (or 'alpha') in the first scan is used to
@@ -269,7 +272,8 @@ bool CanonicalScan::processScan(
   return output_.valid;
 }
 
-void CanonicalScan::laserScanToLDP(const sensor_msgs::msg::LaserScan& scan_msg, LDP& ldp) {
+void CanonicalScan::laserScanToLDP(const sensor_msgs::msg::LaserScan& scan_msg,
+                                   LDP& ldp) {
   unsigned int n = scan_msg.ranges.size();
   ldp = ld_alloc_new(n);
 
@@ -306,7 +310,8 @@ void CanonicalScan::laserScanToLDP(const sensor_msgs::msg::LaserScan& scan_msg, 
 }
 
 void CanonicalScan::PointCloudToLDP(const sensor_msgs::msg::PointCloud& cloud,
-                     const sensor_msgs::msg::LaserScan& scan, LDP& ldp) {
+                                    const sensor_msgs::msg::LaserScan& scan,
+                                    LDP& ldp) {
   unsigned int n =
       scan.ranges.size();  // cloud.points.size();//width * cloud.height ;
   ldp = ld_alloc_new(n);
