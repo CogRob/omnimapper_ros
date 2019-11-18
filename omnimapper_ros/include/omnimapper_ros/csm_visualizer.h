@@ -63,9 +63,6 @@ class CSMVisualizerRViz : public omnimapper::OutputPlugin {
           csm_plugin) {
     csm_plugin_ = csm_plugin;
   }
-  bool drawCSMMap(
-      const omnimapper_ros_msgs::srv::VisualizeFullCloud::Request& req,
-      omnimapper_ros_msgs::srv::VisualizeFullCloud::Response& res);
 
  protected:
   std::shared_ptr<rclcpp::Node> ros_node_;
@@ -79,9 +76,6 @@ class CSMVisualizerRViz : public omnimapper::OutputPlugin {
       marker_array_pub_;
 
   rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr map_cloud_pub_;
-
-  rclcpp::Service<omnimapper_ros_msgs::srv::VisualizeFullCloud>::SharedPtr
-      draw_csm_map_srv_;
 
   boost::shared_ptr<omnimapper::CanonicalScanMatcherPlugin<LScanT> >
       csm_plugin_;

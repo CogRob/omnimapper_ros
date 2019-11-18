@@ -36,33 +36,37 @@
  *
  */
 
-#include <geometry_msgs/PoseArray.h>
-#include <omnimapper_ros/csm_visualizer.h>
+#include "omnimapper_ros/csm_visualizer.h"
+
 #include <pcl/common/transforms.h>
 #include <pcl_conversions/pcl_conversions.h>
 
+#include "geometry_msgs/msg/point.hpp"
+#include "geometry_msgs/msg/pose_array.hpp"
+#include "sensor_msgs/msg/laser_scan.hpp"
+#include "sensor_msgs/msg/point_cloud2.hpp"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
+
 template <typename LScanT>
 omnimapper::CSMVisualizerRViz<LScanT>::CSMVisualizerRViz(
-    omnimapper::OmniMapperBase* mapper)
-    : nh_("~"),
+    omnimapper::OmniMapperBase* mapper, std::shared_ptr<rclcpp::Node> ros_node,
+    std::shared_ptr<tf2_ros::Buffer> tf_buffer)
+    : ros_node_(ros_node),
+      tf_buffer_(tf_buffer),
       mapper_(mapper),
       vis_values_(new gtsam::Values()),
       vis_graph_(new gtsam::NonlinearFactorGraph()),
       draw_graph_(true),
       draw_map_(true) {
-  pose_array_pub_ = nh_.advertise<geometry_msgs::PoseArray>("trajectory", 0);
+  pose_array_pub_ = ros_node_->create_publisher<geometry_msgs::msg::PoseArray>(
+      "trajectory", 0);
 
-  marker_array_pub_ = nh_.advertise<visualization_msgs::MarkerArray>(
-      "/visualization_marker_array", 0);
+  marker_array_pub_ =
+      ros_node_->create_publisher<visualization_msgs::msg::MarkerArray>(
+          "/visualization_marker_array", 0);
 
-  map_cloud_pub_ = nh_.advertise<sensor_msgs::PointCloud2>("csm_map_cloud", 0);
-
-  draw_csm_map_srv_ = nh_.advertiseService(
-      "draw_csm_map", &omnimapper::CSMVisualizerRViz<LScanT>::drawCSMMap, this);
-
-  // draw_icp_clouds_srv_ = nh_.advertiseService ("draw_icp_clouds",
-  // &omnimapper::OmniMapperVisualizerRViz<PointT>::drawICPCloudsCallback,
-  // this);
+  map_cloud_pub_ = ros_node_->create_publisher<sensor_msgs::msg::PointCloud2>(
+      "csm_map_cloud", 0);
 }
 
 template <typename LScanT>
@@ -78,21 +82,21 @@ void omnimapper::CSMVisualizerRViz<LScanT>::update(
   gtsam::Values current_solution = *vis_values;
   gtsam::NonlinearFactorGraph current_graph = *vis_graph;
 
-  geometry_msgs::PoseArray pose_array;
-  pose_array.header.frame_id = "/world";
-  pose_array.header.stamp = ros::Time::now();
+  geometry_msgs::msg::PoseArray pose_array;
+  pose_array.header.frame_id = "/map";
+  pose_array.header.stamp = ros_node_->now();
 
   pcl::PointCloud<pcl::PointXYZ>::Ptr aggregate_cloud(
       new pcl::PointCloud<pcl::PointXYZ>());
-  aggregate_cloud->header.frame_id = "/world";
-  // aggregate_cloud->header.stamp = ros::Time::now ();
+  aggregate_cloud->header.frame_id = "/map";
+  // aggregate_cloud->header.stamp = ros_node_->now();
 
   gtsam::Values::ConstFiltered<gtsam::Pose3> pose_filtered =
       current_solution.filter<gtsam::Pose3>();
   BOOST_FOREACH (
       const gtsam::Values::ConstFiltered<gtsam::Pose3>::KeyValuePair& key_value,
       pose_filtered) {
-    geometry_msgs::Pose pose;
+    geometry_msgs::msg::Pose pose;
 
     gtsam::Symbol key_symbol(key_value.key);
     gtsam::Pose3 sam_pose = key_value.value;
@@ -101,11 +105,11 @@ void omnimapper::CSMVisualizerRViz<LScanT>::update(
     gtsam::Vector quat = rot.quaternion();
 
     // Eigen::Affine3d eigen_mat (pose.matrix ());
-    // tf::Transform tf_pose;
-    // tf::transformEigenToTF (eigen_mat, tf_pose);
+    // tf2::Transform tf_pose;
+    // tf2::transformEigenToTF (eigen_mat, tf_pose);
     // X Y Z W
-    tf::Quaternion orientation(quat[1], quat[2], quat[3], quat[0]);
-    tf::quaternionTFToMsg(orientation, pose.orientation);
+    tf2::Quaternion orientation(quat[1], quat[2], quat[3], quat[0]);
+    pose.orientation = tf2::toMsg(orientation);
     pose.position.x = sam_pose.x();
     pose.position.y = sam_pose.y();
     pose.position.z = sam_pose.z();
@@ -113,7 +117,7 @@ void omnimapper::CSMVisualizerRViz<LScanT>::update(
 
     if (draw_map_) {
       // Draw the scans too
-      sensor_msgs::PointCloud2 cloud_msg = csm_plugin_->getPC2(key_symbol);
+      sensor_msgs::msg::PointCloud2 cloud_msg = csm_plugin_->getPC2(key_symbol);
       if (cloud_msg.width > 0) {
         pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(
             new pcl::PointCloud<pcl::PointXYZ>);
@@ -127,26 +131,26 @@ void omnimapper::CSMVisualizerRViz<LScanT>::update(
     }
   }
 
-  pose_array_pub_.publish(pose_array);
+  pose_array_pub_->publish(pose_array);
 
   if (draw_map_) {
-    sensor_msgs::PointCloud2 cloud_msg;
+    sensor_msgs::msg::PointCloud2 cloud_msg;
     pcl::toROSMsg(*aggregate_cloud, cloud_msg);
-    cloud_msg.header.frame_id = "world";
-    cloud_msg.header.stamp = ros::Time::now();
-    map_cloud_pub_.publish(cloud_msg);
+    cloud_msg.header.frame_id = "map";
+    cloud_msg.header.stamp = ros_node_->now();
+    map_cloud_pub_->publish(cloud_msg);
     // draw_map_ = false;
   }
 
   // Draw the graph
-  visualization_msgs::MarkerArray marker_array;
-  visualization_msgs::Marker mapper_graph;
-  mapper_graph.header.frame_id = "/world";
-  mapper_graph.header.stamp = ros::Time();
+  visualization_msgs::msg::MarkerArray marker_array;
+  visualization_msgs::msg::Marker mapper_graph;
+  mapper_graph.header.frame_id = "/map";
+  mapper_graph.header.stamp = rclcpp::Time();
   mapper_graph.ns = "error_lines";
   mapper_graph.id = 0;
-  mapper_graph.type = visualization_msgs::Marker::LINE_LIST;
-  mapper_graph.action = visualization_msgs::Marker::ADD;
+  mapper_graph.type = visualization_msgs::msg::Marker::LINE_LIST;
+  mapper_graph.action = visualization_msgs::msg::Marker::ADD;
   mapper_graph.color.a = 0.5;
   mapper_graph.color.r = 1.0;
   mapper_graph.color.g = 0.0;
@@ -165,12 +169,12 @@ void omnimapper::CSMVisualizerRViz<LScanT>::update(
         gtsam::Pose3 p1 = current_solution.at<gtsam::Pose3>(keys[0]);
         gtsam::Pose3 p2 = current_solution.at<gtsam::Pose3>(keys[1]);
 
-        geometry_msgs::Point p1_msg;
+        geometry_msgs::msg::Point p1_msg;
         p1_msg.x = p1.x();
         p1_msg.y = p1.y();
         p1_msg.z = p1.z();
 
-        geometry_msgs::Point p2_msg;
+        geometry_msgs::msg::Point p2_msg;
         p2_msg.x = p2.x();
         p2_msg.y = p2.y();
         p2_msg.z = p2.z();
@@ -182,42 +186,7 @@ void omnimapper::CSMVisualizerRViz<LScanT>::update(
   }
 
   marker_array.markers.push_back(mapper_graph);
-  marker_array_pub_.publish(marker_array);
+  marker_array_pub_->publish(marker_array);
 }
 
-template <typename LScanT>
-bool omnimapper::CSMVisualizerRViz<LScanT>::drawCSMMap(
-    omnimapper_ros::VisualizeFullCloud::Request& req,
-    omnimapper_ros::VisualizeFullCloud::Response& res) {
-  // gtsam::Values current_solution;
-  // gtsam::NonlinearFactorGraph current_graph;
-
-  // {
-  //   boost::lock_guard<boost::mutex> lock (vis_mutex_);
-  //   current_solution = vis_values_;
-  //   current_graph = vis_graph_;
-  // }
-
-  // gtsam::Values::ConstFiltered<gtsam::Pose3> pose_filtered =
-  // current_solution.filter<gtsam::Pose3>();
-
-  // int pose_num = 0;
-  // BOOST_FOREACH (const
-  // gtsam::Values::ConstFiltered<gtsam::Pose3>::KeyValuePair& key_value,
-  // pose_filtered)
-  // {
-  //   gtsam::Symbol key_symbol (key_value.key);
-  //   gtsam::Pose3 sam_pose = key_value.value;
-  // }
-}
-
-// template <typename LScanT> bool
-// omnimapper::CSMVisualizerRViz<LScanT>::drawICPCloudsCallback
-// (omnimapper_ros::VisualizeFullCloud::Request &req,
-// omnimapper_ros::VisualizeFullCloud::Response &res)
-// {
-//   draw_icp_clouds_ = true;
-//   return (true);
-// }
-
-template class omnimapper::CSMVisualizerRViz<sensor_msgs::LaserScan>;
+template class omnimapper::CSMVisualizerRViz<sensor_msgs::msg::LaserScan>;

@@ -87,6 +87,8 @@ add_library(tf_pose_plugin src/tf_pose_plugin.cpp)
 
 add_library(get_transform_functor_tf src/get_transform_functor_tf.cpp)
 
+add_library(csm_visualizer src/csm_visualizer.cpp)
+
 ament_target_dependencies(
   canonical_scan_matcher_plugin omnimapper_ros_msgs
   ${Boost_LIBRARIES} ${PCL_LIBRARIES} rclcpp pcl_conversions
@@ -107,6 +109,11 @@ target_link_libraries(
   time_test ros_time_utils ${Boost_LIBRARIES} ${PCL_LIBRARIES}
   omnimapper gtsam organized_segmentation_tools tcmalloc
   profiler tbb csm)
+
+ament_target_dependencies(
+  csm_visualizer omnimapper_ros_msgs
+  ${Boost_LIBRARIES} ${PCL_LIBRARIES} rclcpp pcl_conversions
+  omnimapper gtsam organized_segmentation_tools tcmalloc profiler tbb csm)
 
 install(TARGETS
   time_test ros_time_utils
