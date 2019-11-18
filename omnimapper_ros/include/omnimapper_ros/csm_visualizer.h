@@ -41,6 +41,7 @@
 #include <omnimapper/omnimapper_base.h>
 
 #include "geometry_msgs/msg/point.hpp"
+#include "geometry_msgs/msg/pose_array.hpp"
 #include "omnimapper_ros/canonical_scan_matcher_plugin.h"
 #include "omnimapper_ros_msgs/srv/visualize_full_cloud.hpp"
 #include "rclcpp/rclcpp.hpp"

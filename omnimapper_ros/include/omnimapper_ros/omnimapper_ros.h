@@ -57,11 +57,14 @@
 #include "omnimapper_ros/get_transform_functor_tf.h"
 #include "omnimapper_ros/omnimapper_visualizer_rviz.h"
 #include "omnimapper_ros/ros_tf_utils.h"
-#include "omnimapper_ros_msgs/srv/output_map_tsdf.h"
+#include "omnimapper_ros_msgs/srv/output_map_tsdf.hpp"
 #include "organized_segmentation_tools/organized_segmentation_tbb.h"
 #include "pcl_conversions/pcl_conversions.h"
 #include "tf2_ros/transform_broadcaster.h"
 #include "tf2_ros/transform_listener.h"
+
+#include "sensor_msgs/msg/point_cloud2.hpp"
+#include "sensor_msgs/msg/laser_scan.hpp"
 
 template <typename PointT>
 class OmniMapperROS {
@@ -80,10 +83,10 @@ class OmniMapperROS {
   void loadROSParams();
 
   // Point Cloud Callback
-  void cloudCallback(const sensor_msgs::msg::PointCloud2ConstPtr& msg);
+  void cloudCallback(const sensor_msgs::msg::PointCloud2::SharedPtr msg);
 
   // Laser Scan Callback
-  void laserScanCallback(const sensor_msgs::msg::LaserScanConstPtr& msg);
+  void laserScanCallback(const sensor_msgs::msg::LaserScan::SharedPtr msg);
 
   // Evaluation Timer Callback
   // void evalTimerCallback (const ros::TimerEvent& e);
@@ -96,8 +99,8 @@ class OmniMapperROS {
 
   // Service call for generating a map TSDF
   bool generateMapTSDFCallback(
-      omnimapper_ros::srv::OutputMapTSDF::Request& req,
-      omnimapper_ros::srv::OutputMapTSDF::Response& res);
+      omnimapper_ros_msgs::srv::OutputMapTSDF::Request& req,
+      omnimapper_ros_msgs::srv::OutputMapTSDF::Response& res);
 
   /*
   void runEvaluation (std::string& associated_filename,
@@ -155,16 +158,15 @@ class OmniMapperROS {
   cogrob::OrganizedSegmentationTBB<PointT> organized_segmentation_;
 
   // TF Listener  (for initialization)
-  tf::TransformListener tf_listener_;
-  tf::TransformBroadcaster tf_broadcaster_;
+  tf2_ros::TransformListener tf_listener_;
+  tf2_ros::TransformBroadcaster tf_broadcaster_;
 
   // Subscribers
   rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr
       pointcloud_sub_;
   rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr laserScan_sub_;
 
-  rclcpp::Service<omnimapper_ros::srv::OutputMapTSDF>::SharedPtr
-      generate_tsdf_srv_;
+  rclcpp::Service<omnimapper_ros_msgs::srv::OutputMapTSDF>::SharedPtr generate_tsdf_srv_;
 
   // Mapper config
   bool use_planes_;
@@ -266,7 +268,6 @@ class OmniMapperROS {
   std::string evaluation_output_trajectory_txt_path_;
   bool evaluation_mode_write_trajectory_;
   bool evaluation_mode_write_tsdf_;
-  rclcpp::Timer eval_timer_;
   bool evaluation_mode_paused_;
   bool use_organized_segmentation_;
   bool evaluation_show_frames_;

@@ -109,7 +109,7 @@ gtsam::Pose3 doCSM_impl(const sensor_msgs::msg::LaserScan& from_scan,
                         bool laser_mode = true);
 
 sensor_msgs::msg::LaserScan SmoothScan(
-    const sensor_msgs::msg::LaserScanConstPtr& msg_in);
+    const sensor_msgs::msg::LaserScan::SharedPtr& msg_in);
 
 gtsam::Point3 GetMeanLaserPoint(
     boost::shared_ptr<pcl::PointCloud<pcl::PointXYZ> > cloud);
