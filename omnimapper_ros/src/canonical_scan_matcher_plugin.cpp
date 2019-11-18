@@ -276,10 +276,8 @@ bool CanonicalScanMatcherPlugin<LScanT>::getBaseToLaserTf(
                 ex.what());
     return false;
   }
-  tf2::Stamped<tf2::Transform> base_to_laser_tf_stamped;
-  fromMsg(base_to_laser_tf, base_to_laser_tf_stamped);
 
-  base_to_laser_ = base_to_laser_tf_stamped;
+  fromMsg(base_to_laser_tf.transform, base_to_laser_);
   laser_to_base_ = base_to_laser_.inverse();
 
   return true;

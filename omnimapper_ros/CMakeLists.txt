@@ -37,9 +37,13 @@ find_package(Boost REQUIRED COMPONENTS system)
 find_package(PCL 1.7 REQUIRED)
 link_directories(${PCL_LIBRARY_DIRS})
 
-# Set include directories
 include_directories(
   include
+)
+
+# Set include directories
+include_directories(
+  SYSTEM
   ${omnimapper_ros_msgs_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
   ${PCL_INCLUDE_DIRS}
@@ -66,6 +70,9 @@ if(BUILD_TESTING)
   #set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
+
+
+add_library(csm_math_functions src/csm_math_functions.cpp)
 
 add_library(ros_time_utils src/ros_time_utils.cpp)
 

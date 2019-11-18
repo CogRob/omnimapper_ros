@@ -20,9 +20,10 @@
  *
  */
 
-bool CheckMoveFarEnough(const geometry_msgs::msg::TransformStamped& last_pose,
-                        const geometry_msgs::msg::TransformStamped& curr_pose,
-                        double distance, double rot_thresh);
+bool CheckMoveFarEnough(
+    const geometry_msgs::msg::TransformStamped& last_pose_msg,
+    const geometry_msgs::msg::TransformStamped& curr_pose_msg, double distance,
+    double rot_thresh);
 
 /*!
  * \brief Makes a gtsam::Pose2 out of a TF stamped transform

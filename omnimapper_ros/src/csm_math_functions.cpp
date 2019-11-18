@@ -1,27 +1,31 @@
-#include <omnimapper_ros/csm_math_functions.h>
+#include "omnimapper_ros/csm_math_functions.h"
 
-#if ROS_VERSION > ROS_VERSION_COMBINED(1, 8, 0)
-#define btVector3 tf::Vector3
-#define btMatrix3x3 tf::Matrix3x3
-#endif
+#include "tf2/utils.h"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 
-bool CheckMoveFarEnough(const geometry_msgs::msg::TransformStamped& last_pose,
-                        const geometry_msgs::msg::TransformStamped& curr_pose,
-                        double distance, double rot_thresh) {
+bool CheckMoveFarEnough(
+    const geometry_msgs::msg::TransformStamped& last_pose_msg,
+    const geometry_msgs::msg::TransformStamped& curr_pose_msg, double distance,
+    double rot_thresh) {
+  tf2::Transform last_pose, curr_pose;
+  tf2::fromMsg(last_pose_msg.transform, last_pose);
+  tf2::fromMsg(curr_pose_msg.transform, curr_pose);
+
   double dx = curr_pose.getOrigin().x() - last_pose.getOrigin().x();
   double dy = curr_pose.getOrigin().y() - last_pose.getOrigin().y();
   double dz = curr_pose.getOrigin().z() - last_pose.getOrigin().z();
   double dist = sqrt(dx * dx + dy * dy + dz * dz);
-  double ang_dist = fabs(WrapToPi(tf::getYaw(last_pose.getRotation()) -
-                                  tf::getYaw(curr_pose.getRotation())));
+  double ang_dist = fabs(WrapToPi(tf2::getYaw(last_pose.getRotation()) -
+                                  tf2::getYaw(curr_pose.getRotation())));
   return (dist >= distance) || (ang_dist >= rot_thresh);
 }
 
-gtsam::Pose3 GetPose(const geometry_msgs::msg::TransformStamped& transform) {
-  //  return gtsam::Pose2(transform.getOrigin().x(),
-  //		      transform.getOrigin().y(),
-  //		      tf::getYaw(transform.getRotation()));
-  btVector3 axis = transform.getRotation().getAxis();
+gtsam::Pose3 GetPose(
+    const geometry_msgs::msg::TransformStamped& transform_msg) {
+  tf2::Transform transform;
+  tf2::fromMsg(transform_msg.transform, transform);
+
+  tf2::Vector3 axis = transform.getRotation().getAxis();
   gtsam::Vector gtsam_axis;
   double axis_norm =
       sqrt(axis[0] * axis[0] + axis[1] * axis[1] + axis[2] * axis[2]);
@@ -51,7 +55,7 @@ gtsam::Pose3 GetRelativePose(
 
 tf2::Transform Pose3ToTransform(const gtsam::Pose3& ps) {
   tf2::Transform t;
-  t.setOrigin(btVector3(ps.x(), ps.y(), ps.z()));
+  t.setOrigin(tf2::Vector3(ps.x(), ps.y(), ps.z()));
   tf2::Quaternion q;
   gtsam::Vector ypr = ps.rotation().ypr();
   q.setRPY(ypr[2], ypr[1], ypr[0]);
@@ -60,7 +64,7 @@ tf2::Transform Pose3ToTransform(const gtsam::Pose3& ps) {
 }
 gtsam::Pose3 TransformToPose3(const tf2::Transform& t) {
   double roll, pitch, yaw;
-  btMatrix3x3 m(t.getRotation());
+  tf2::Matrix3x3 m(t.getRotation());
   m.getRPY(roll, pitch, yaw);
   return gtsam::Pose3(
       gtsam::Rot3::ypr(yaw, pitch, roll),
@@ -69,7 +73,7 @@ gtsam::Pose3 TransformToPose3(const tf2::Transform& t) {
 
 tf2::Transform Pose2ToTransform(const gtsam::Pose2& ps) {
   tf2::Transform t;
-  t.setOrigin(btVector3(ps.x(), ps.y(), 0.0));
+  t.setOrigin(tf2::Vector3(ps.x(), ps.y(), 0.0));
   tf2::Quaternion q;
   q.setRPY(0, 0, ps.theta());
   t.setRotation(q);
@@ -77,18 +81,18 @@ tf2::Transform Pose2ToTransform(const gtsam::Pose2& ps) {
 }
 gtsam::Pose2 TransformToPose2(const tf2::Transform& t) {
   double roll, pitch, yaw;
-  btMatrix3x3 m(t.getRotation());
+  tf2::Matrix3x3 m(t.getRotation());
   m.getRPY(roll, pitch, yaw);
   return gtsam::Pose2(yaw, gtsam::Point2(t.getOrigin().x(), t.getOrigin().y()));
 }
 
-gtsam::Point3 btVectorToPoint3(const btVector3& vec) {
+gtsam::Point3 btVectorToPoint3(const tf2::Vector3& vec) {
   return gtsam::Point3(vec.getX(), vec.getY(), vec.getZ());
 }
 gtsam::Pose3 btTransformToPose3(const tf2::Transform& transform) {
-  btVector3 col0 = transform.getBasis().getColumn(0);
-  btVector3 col1 = transform.getBasis().getColumn(1);
-  btVector3 col2 = transform.getBasis().getColumn(2);
+  tf2::Vector3 col0 = transform.getBasis().getColumn(0);
+  tf2::Vector3 col1 = transform.getBasis().getColumn(1);
+  tf2::Vector3 col2 = transform.getBasis().getColumn(2);
   gtsam::Rot3 rot(btVectorToPoint3(col0), btVectorToPoint3(col1),
                   btVectorToPoint3(col2));
   gtsam::Point3 trans = btVectorToPoint3(transform.getOrigin());
