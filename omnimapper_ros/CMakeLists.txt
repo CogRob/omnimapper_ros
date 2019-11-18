@@ -67,6 +67,8 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
+add_library(canonical_scan src/canonical_scan.cpp)
+
 add_library(try_headers src/try_headers.cpp)
 ament_target_dependencies(
   try_headers omnimapper_ros_msgs
