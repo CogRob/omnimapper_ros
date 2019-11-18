@@ -1,14 +1,12 @@
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <rclcpp/rclcpp.hpp>
 
-#include <boost/date_time/posix_time/posix_time.hpp>
-
 #include "boost/date_time/local_time/local_time.hpp"
-
 #include "omnimapper_ros/ros_time_utils.h"
 
 class TimeTest {
  public:
-   std::shared_ptr<rclcpp::Node> n_;
+  std::shared_ptr<rclcpp::Node> n_;
 
   TimeTest(std::shared_ptr<rclcpp::Node> n) : n_(n) {
     rclcpp::Time t1_rclcpp = n_->now();
@@ -18,7 +16,7 @@ class TimeTest {
     std::string t1_boost_str = boost::posix_time::to_simple_string(t1_boost);
     std::cout << "Boost Time: " << t1_boost << std::endl;
 
-    rclcpp::Time t1_rclcpp_again = omnimapper::ptime2rostime (t1_boost);
+    rclcpp::Time t1_rclcpp_again = omnimapper::ptime2rostime(t1_boost);
     std::cout << "rclcpp Time: " << t1_rclcpp.seconds() << std::endl;
 
     boost::posix_time::ptime time_t_epoch(boost::gregorian::date(1970, 1, 1));
@@ -26,7 +24,8 @@ class TimeTest {
     std::cout << "Since epoch: " << diff.total_nanoseconds() << std::endl;
 
     rclcpp::Time t1_rclcpp_again_again(diff.total_nanoseconds());
-    std::cout << "rclcpp Time again: " << t1_rclcpp_again_again.seconds() << std::endl;
+    std::cout << "rclcpp Time again: " << t1_rclcpp_again_again.seconds()
+              << std::endl;
   }
 };
 
