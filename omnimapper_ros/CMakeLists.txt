@@ -71,6 +71,7 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
+add_library(ros_tf_utils src/ros_tf_utils.cpp)
 
 add_library(csm_math_functions src/csm_math_functions.cpp)
 

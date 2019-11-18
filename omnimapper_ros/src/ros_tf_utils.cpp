@@ -1,8 +1,14 @@
-#include <omnimapper_ros/ros_tf_utils.h>
+#include "omnimapper_ros/ros_tf_utils.h"
+
+#include "tf2/utils.h"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 
 gtsam::Pose3 omnimapper::tf2pose3(
-    const geometry_msgs::msg::TransformStamped& transform) {
-  tf::Vector3 axis = transform.getRotation().getAxis();
+    const geometry_msgs::msg::TransformStamped& transform_msg) {
+  tf2::Transform transform;
+  tf2::fromMsg(transform_msg.transform, transform);
+
+  tf2::Vector3 axis = transform.getRotation().getAxis();
   double len = sqrt(axis[0] * axis[0] + axis[1] * axis[1] + axis[2] * axis[2]);
   assert(len != 0);
   gtsam::Vector gtsam_axis =
@@ -14,10 +20,10 @@ gtsam::Pose3 omnimapper::tf2pose3(
                     transform.getOrigin().z()));
 }
 
-tf::Transform omnimapper::pose3totf(gtsam::Pose3& pose) {
-  tf::Transform t;
-  t.setOrigin(tf::Vector3(pose.x(), pose.y(), pose.z()));
-  tf::Quaternion q;
+tf2::Transform omnimapper::pose3totf(gtsam::Pose3& pose) {
+  tf2::Transform t;
+  t.setOrigin(tf2::Vector3(pose.x(), pose.y(), pose.z()));
+  tf2::Quaternion q;
   gtsam::Vector ypr = pose.rotation().ypr();
   q.setRPY(ypr[2], ypr[1], ypr[0]);
   t.setRotation(q);
