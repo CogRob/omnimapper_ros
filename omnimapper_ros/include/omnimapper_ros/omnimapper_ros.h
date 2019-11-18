@@ -57,11 +57,11 @@
 #include "omnimapper_ros/get_transform_functor_tf.h"
 #include "omnimapper_ros/omnimapper_visualizer_rviz.h"
 #include "omnimapper_ros/ros_tf_utils.h"
-#include "omnimapper_ros/srv/output_map_tsdf.h"
+#include "omnimapper_ros_msgs/srv/output_map_tsdf.h"
 #include "organized_segmentation_tools/organized_segmentation_tbb.h"
 #include "pcl_conversions/pcl_conversions.h"
-#include "tf/transform_broadcaster.h"
-#include "tf/transform_listener.h"
+#include "tf2_ros/transform_broadcaster.h"
+#include "tf2_ros/transform_listener.h"
 
 template <typename PointT>
 class OmniMapperROS {

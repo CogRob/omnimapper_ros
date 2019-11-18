@@ -41,11 +41,11 @@
 #include <pcl/segmentation/planar_region.h>
 
 #include "geometry_msgs/msg/point.hpp"
-#include "omnimapper_ros/srv/publish_model.hpp"
-#include "omnimapper_ros/srv/visualize_full_cloud.hpp"
-#include "omnimapper_ros/srv/write_trajectory_file.hpp"
+#include "omnimapper_ros_msgs/srv/publish_model.hpp"
+#include "omnimapper_ros_msgs/srv/visualize_full_cloud.hpp"
+#include "omnimapper_ros_msgs/srv/write_trajectory_file.hpp"
 #include "rclcpp/rclcpp.hpp"
-#include "tf_conversions/tf_eigen.h"
+#include "tf2_eigen/tf2_eigen.h"
 #include "visualization_msgs/msg/marker_array.hpp"
 
 namespace omnimapper {
@@ -86,10 +86,10 @@ class OmniMapperVisualizerRViz : public omnimapper::OutputPlugin {
     icp_plugin_ = icp_plugin;
   }
   bool drawICPCloudsCallback(
-      omnimapper_ros::srv::VisualizeFullCloud::Request& req,
-      omnimapper_ros::srv::VisualizeFullCloud::Response& res);
-  bool publishModel(omnimapper_ros::srv::PublishModel::Request& req,
-                    omnimapper_ros::srv::PublishModel::Response& res);
+      omnimapper_ros_msgs::srv::VisualizeFullCloud::Request& req,
+      omnimapper_ros_msgs::srv::VisualizeFullCloud::Response& res);
+  bool publishModel(omnimapper_ros_msgs::srv::PublishModel::Request& req,
+                    omnimapper_ros_msgs::srv::PublishModel::Response& res);
   void setDrawPoseArray(bool draw_pose_array) {
     draw_pose_array_ = draw_pose_array;
   }
@@ -113,8 +113,8 @@ class OmniMapperVisualizerRViz : public omnimapper::OutputPlugin {
   // omnimapper::Time t);
 
   bool writeTrajectoryFile(
-      omnimapper_ros::srv::WriteTrajectoryFile::Request& req,
-      omnimapper_ros::srv::WriteTrajectoryFile::Response& res);
+      omnimapper_ros_msgs::srv::WriteTrajectoryFile::Request& req,
+      omnimapper_ros_msgs::srv::WriteTrajectoryFile::Response& res);
 
  protected:
   // A ROS Node Handle

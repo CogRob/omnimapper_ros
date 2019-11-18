@@ -44,7 +44,7 @@
 #include "omnimapper_ros/canonical_scan_matcher_plugin.h"
 #include "omnimapper_ros_msgs/srv/visualize_full_cloud.hpp"
 #include "rclcpp/rclcpp.hpp"
-#include "tf_conversions/tf_eigen.h"
+#include "tf2_eigen/tf2_eigen.h"
 #include "visualization_msgs/msg/marker_array.hpp"
 
 namespace omnimapper {

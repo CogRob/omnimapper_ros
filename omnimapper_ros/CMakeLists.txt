@@ -22,6 +22,7 @@ find_package(rclcpp REQUIRED)
 find_package(omnimapper_ros_msgs REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
+find_package(tf2_eigen REQUIRED)
 find_package(visualization_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
@@ -47,6 +48,7 @@ include_directories(
   ${rclcpp_INCLUDE_DIR}
   ${tf2_INCLUDE_DIR}
   ${tf2_ros_INCLUDE_DIR}
+  ${tf2_eigen_INCLUDE_DIR}
   ${visualization_msgs_INCLUDE_DIR}
   ${geometry_msgs_INCLUDE_DIR}
   ${sensor_msgs_INCLUDE_DIR}
