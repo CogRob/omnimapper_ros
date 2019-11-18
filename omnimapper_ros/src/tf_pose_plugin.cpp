@@ -2,10 +2,12 @@
 
 namespace omnimapper {
 
-TFPosePlugin::TFPosePlugin(omnimapper::OmniMapperBase* mapper)
+TFPosePlugin::TFPosePlugin(omnimapper::OmniMapperBase* mapper,
+                           std::shared_ptr<rclcpp::Node> ros_node,
+                           std::shared_ptr<tf2_ros::Buffer> tf_buffer)
     : mapper_(mapper),
-      nh_("~"),
-      tf_listener_(ros::Duration(30.0)),
+      ros_node_(ros_node),
+      tf_buffer_(tf_buffer),
       odom_frame_name_("/odom"),
       base_frame_name_("/camera_depth_optical_frame"),
       translation_noise_(1.0),
@@ -16,32 +18,30 @@ gtsam::BetweenFactor<gtsam::Pose3>::shared_ptr TFPosePlugin::addRelativePose(
     boost::posix_time::ptime t1, gtsam::Symbol sym1,
     boost::posix_time::ptime t2, gtsam::Symbol sym2) {
   // Convert the timestamps
-  ros::Time rt1 = ptime2rostime(t1);
-  ros::Time rt2 = ptime2rostime(t2);
+  rclcpp::Time rt1 = ptime2rostime(t1);
+  rclcpp::Time rt2 = ptime2rostime(t2);
 
   // Get the poses
-  tf::StampedTransform tf1;
-  tf::StampedTransform tf2;
+  geometry_msgs::msg::TransformStamped tf1;
+  geometry_msgs::msg::TransformStamped tf2;
 
   // Add the factor
   bool got_tf = true;
   gtsam::Pose3 relative_pose = gtsam::Pose3::identity();
   try {
-    tf_listener_.waitForTransform(odom_frame_name_, base_frame_name_, rt1,
-                                  ros::Duration(0.2));
-
-    tf_listener_.lookupTransform(odom_frame_name_, base_frame_name_, rt1, tf1);
-
-    tf_listener_.waitForTransform(odom_frame_name_, base_frame_name_, rt2,
-                                  ros::Duration(0.2));
-
-    tf_listener_.lookupTransform(odom_frame_name_, base_frame_name_, rt2, tf2);
-  } catch (tf::TransformException ex) {
-    ROS_INFO(
+    tf1 = tf_buffer_->lookupTransform(odom_frame_name_, base_frame_name_,
+                                      tf2_ros::fromMsg(rt1),
+                                      tf2::durationFromSec(0.2));
+    tf2 = tf_buffer_->lookupTransform(odom_frame_name_, base_frame_name_,
+                                      tf2_ros::fromMsg(rt2),
+                                      tf2::durationFromSec(0.2));
+  } catch (tf2::TransformException ex) {
+    RCLCPP_INFO(
+        ros_node_->get_logger(),
         "OmniMapper reports :: Transform from %s to %s not yet available.  "
         "Exception: %s",
         odom_frame_name_.c_str(), base_frame_name_.c_str(), ex.what());
-    ROS_INFO("Writing identity instead\n");
+    RCLCPP_INFO(ros_node_->get_logger(), "Writing identity instead\n");
     got_tf = false;
   }
 
@@ -60,7 +60,6 @@ gtsam::BetweenFactor<gtsam::Pose3>::shared_ptr TFPosePlugin::addRelativePose(
   }
 
   double trans_noise = translation_noise_;  // 1.0;
-  double rot_noise = rotation_noise_;       // 1.0;
 
   gtsam::SharedDiagonal noise = gtsam::noiseModel::Diagonal::Sigmas(
       (gtsam::Vector(6) << roll_noise_, pitch_noise_, yaw_noise_, trans_noise,
