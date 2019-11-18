@@ -85,6 +85,8 @@ add_library(canonical_scan_matcher_plugin src/canonical_scan_matcher_plugin.cpp)
 
 add_library(tf_pose_plugin src/tf_pose_plugin.cpp)
 
+add_library(get_transform_functor_tf src/get_transform_functor_tf.cpp)
+
 ament_target_dependencies(
   canonical_scan_matcher_plugin omnimapper_ros_msgs
   ${Boost_LIBRARIES} ${PCL_LIBRARIES} rclcpp pcl_conversions
