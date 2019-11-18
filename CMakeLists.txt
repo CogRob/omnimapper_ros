@@ -22,7 +22,6 @@ find_package(rclcpp REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(visualization_msgs REQUIRED)
-find_package(interactive_markers REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(laser_geometry REQUIRED)
@@ -48,7 +47,6 @@ include_directories(
   ${tf2_INCLUDE_DIR}
   ${tf2_ros_INCLUDE_DIR}
   ${visualization_msgs_INCLUDE_DIR}
-  ${interactive_markers_INCLUDE_DIR}
   ${geometry_msgs_INCLUDE_DIR}
   ${sensor_msgs_INCLUDE_DIR}
   ${laser_geometry_INCLUDE_DIR}
@@ -59,8 +57,7 @@ rosidl_generate_interfaces(omnimapper_ros_srv
   "srv/OutputMapTSDF.srv"
   "srv/PublishModel.srv"
   "srv/VisualizeFullCloud.srv"
-  "srv/WriteTrajectoryFile.srv"
-  DEPENDENCIES geometry_msgs std_msgs sensor_msgs)
+  "srv/WriteTrajectoryFile.srv")
 ament_export_dependencies(rosidl_default_runtime)
 
 if(BUILD_TESTING)
@@ -74,36 +71,42 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
-add_library(omnimapper_ros
-  src/ros_time_utils.cpp
-  src/ros_tf_utils.cpp
-  src/tf_pose_plugin.cpp
-  src/omnimapper_visualizer_rviz.cpp
-  src/get_transform_functor_tf.cpp
-  src/canonical_scan_matcher_plugin.cpp
-  src/canonical_scan.cpp
-  src/csm_math_functions.cpp
-  src/csm_visualizer.cpp
-  src/omnimapper_ros.cpp
-)
-target_link_libraries(
-  omnimapper_ros
-  ${Boost_LIBRARIES} ${PCL_LIBRARIES} omnimapper gtsam
-  organized_segmentation_tools tcmalloc profiler tbb csm)
+add_library(try_headers src/try_headers.cpp)
 ament_target_dependencies(
-  omnimapper_ros
-  ${Boost_LIBRARIES} ${PCL_LIBRARIES}
+  try_headers
+  ${Boost_LIBRARIES} ${PCL_LIBRARIES} rclcpp
   omnimapper gtsam organized_segmentation_tools tcmalloc profiler tbb csm)
 
-add_executable(omnimapper_ros_node src/omnimapper_ros_node.cpp)
-target_link_libraries(
-  omnimapper_ros_node
-  ${PROJECT_NAME} ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${Boost_LIBRARIES}
-  omnimapper gtsam tcmalloc profiler)
-ament_target_dependencies(omnimapper_ros_node
-  rclcpp tf2 tf2_ros visualization_msgs interactive_markers geometry_msgs
-  sensor_msgs laser_geometry pcl_conversions)
-
-install(TARGETS omnimapper_ros_node DESTINATION lib/${PROJECT_NAME})
-
+# add_library(omnimapper_ros
+#   src/ros_time_utils.cpp
+#   src/ros_tf_utils.cpp
+#   src/tf_pose_plugin.cpp
+#   src/omnimapper_visualizer_rviz.cpp
+#   src/get_transform_functor_tf.cpp
+#   src/canonical_scan_matcher_plugin.cpp
+#   src/canonical_scan.cpp
+#   src/csm_math_functions.cpp
+#   src/csm_visualizer.cpp
+#   src/omnimapper_ros.cpp
+# )
+# target_link_libraries(
+#   omnimapper_ros
+#   ${Boost_LIBRARIES} ${PCL_LIBRARIES} omnimapper gtsam
+#   organized_segmentation_tools tcmalloc profiler tbb csm)
+# ament_target_dependencies(
+#   omnimapper_ros
+#   ${Boost_LIBRARIES} ${PCL_LIBRARIES}
+#   omnimapper gtsam organized_segmentation_tools tcmalloc profiler tbb csm)
+#
+# add_executable(omnimapper_ros_node src/omnimapper_ros_node.cpp)
+# target_link_libraries(
+#   omnimapper_ros_node
+#   ${PROJECT_NAME} ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${Boost_LIBRARIES}
+#   omnimapper gtsam tcmalloc profiler)
+# ament_target_dependencies(omnimapper_ros_node
+#   rclcpp tf2 tf2_ros visualization_msgs interactive_markers geometry_msgs
+#   sensor_msgs laser_geometry pcl_conversions)
+#
+# install(TARGETS omnimapper_ros_node DESTINATION lib/${PROJECT_NAME})
+#
 ament_package()

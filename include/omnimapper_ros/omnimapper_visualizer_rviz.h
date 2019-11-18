@@ -41,8 +41,6 @@
 #include <pcl/segmentation/planar_region.h>
 
 #include "geometry_msgs/msg/point.hpp"
-#include "interactive_markers/interactive_marker_server.h"
-#include "interactive_markers/menu_handler.h"
 #include "omnimapper_ros/srv/publish_model.hpp"
 #include "omnimapper_ros/srv/visualize_full_cloud.hpp"
 #include "omnimapper_ros/srv/write_trajectory_file.hpp"
@@ -109,32 +107,6 @@ class OmniMapperVisualizerRViz : public omnimapper::OutputPlugin {
     draw_icp_clouds_full_res_ = full_res;
   }
 
-  boost::shared_ptr<interactive_markers::InteractiveMarkerServer>
-  getInteractiveMarkerServerPtr() {
-    return (marker_server_);
-  }
-
-  boost::shared_ptr<interactive_markers::MenuHandler> getMenuHandlerPtr() {
-    return (menu_handler_);
-  }
-
-  /** \brief Initializes the Interactive Menu */
-  void initMenu();
-
-  /** \brief playPauseCb is used by interactive marker menu to control the
-   * mapper's playback */
-  void playPauseCb(
-      const visualization_msgs::msg::InteractiveMarkerFeedbackConstPtr&
-          feedback);
-
-  void drawMapCloudCb(
-      const visualization_msgs::msg::InteractiveMarkerFeedbackConstPtr&
-          feedback);
-
-  void drawPoseMarginalsCb(
-      const visualization_msgs::msg::InteractiveMarkerFeedbackConstPtr&
-          feedback);
-
   // For drawing planes, and use in AR application
   // void planarRegionCallback (std::vector<pcl::PlanarRegion<PointT>,
   // Eigen::aligned_allocator<pcl::PlanarRegion<PointT> > > regions,
@@ -156,19 +128,6 @@ class OmniMapperVisualizerRViz : public omnimapper::OutputPlugin {
   boost::shared_ptr<gtsam::Values> vis_values_;
   boost::shared_ptr<gtsam::NonlinearFactorGraph> vis_graph_;
   bool updated_;
-
-  // Interactive Markers
-  boost::shared_ptr<interactive_markers::InteractiveMarkerServer>
-      marker_server_;
-
-  // Menu Handler
-  boost::shared_ptr<interactive_markers::MenuHandler> menu_handler_;
-
-  // Playback Menu Entry Handle
-  interactive_markers::MenuHandler::EntryHandle playback_menu_;
-
-  // Visualizaion Menu Handle
-  interactive_markers::MenuHandler::EntryHandle visualization_menu_;
 
   // Publisher for the trajectory
   ros::Publisher pose_array_pub_;
