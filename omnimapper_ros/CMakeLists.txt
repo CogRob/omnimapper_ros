@@ -100,7 +100,8 @@ ament_target_dependencies(
   omnimapper gtsam organized_segmentation_tools tcmalloc profiler tbb csm)
 
 target_link_libraries(
-  time_test ros_time_utils ${Boost_LIBRARIES} ${PCL_LIBRARIES} omnimapper gtsam organized_segmentation_tools tcmalloc
+  time_test ros_time_utils ${Boost_LIBRARIES} ${PCL_LIBRARIES}
+  omnimapper gtsam organized_segmentation_tools tcmalloc
   profiler tbb csm)
 
 install(TARGETS
