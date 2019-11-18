@@ -70,6 +70,14 @@ endif()
 add_library(canonical_scan src/canonical_scan.cpp)
 
 add_library(try_headers src/try_headers.cpp)
+
+add_library(canonical_scan_matcher_plugin src/canonical_scan_matcher_plugin.cpp)
+
+ament_target_dependencies(
+  canonical_scan_matcher_plugin omnimapper_ros_msgs
+  ${Boost_LIBRARIES} ${PCL_LIBRARIES} rclcpp pcl_conversions
+  omnimapper gtsam organized_segmentation_tools tcmalloc profiler tbb csm)
+
 ament_target_dependencies(
   try_headers omnimapper_ros_msgs
   ${Boost_LIBRARIES} ${PCL_LIBRARIES} rclcpp pcl_conversions

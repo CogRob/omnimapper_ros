@@ -1,15 +1,19 @@
 #include <omnimapper/omnimapper_base.h>
 #include <omnimapper/time.h>
-#include <omnimapper_ros/canonical_scan_matcher_plugin.h>
-#include <omnimapper_ros/csm_math_functions.h>
 
-gtsam::Pose3 doCSM_impl(const sensor_msgs::LaserScan& from_scan,
-                        const sensor_msgs::LaserScan& to_scan,
+#include "omnimapper_ros/canonical_scan_matcher_plugin.h"
+#include "omnimapper_ros/csm_math_functions.h"
+#include "omnimapper_ros/ros2_utils.h"
+
+#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
+
+gtsam::Pose3 doCSM_impl(const sensor_msgs::msg::LaserScan& from_scan,
+                        const sensor_msgs::msg::LaserScan& to_scan,
                         const gtsam::Pose3& odometry_relative_pose,
                         bool& worked_,
                         gtsam::noiseModel::Gaussian::shared_ptr& noise_model,
                         scan_tools::CanonicalScan& canonicalScan,
-                        tf::Transform& base_to_laser_tf, bool laser_mode) {
+                        tf2::Transform& base_to_laser_tf, bool laser_mode) {
   gtsam::Pose3 result_pose = odometry_relative_pose;
   LDP from_ldp, to_ldp;
 
@@ -18,18 +22,18 @@ gtsam::Pose3 doCSM_impl(const sensor_msgs::LaserScan& from_scan,
 
   gtsam::Pose2 outp_rel_pose_laser;
 
-  tf::Transform base_to_laser_ = base_to_laser_tf;
-  tf::Transform laser_to_base_ = base_to_laser_.inverse();
-  tf::Transform pr_ch = Pose3ToTransform(odometry_relative_pose);
-  tf::Transform pr_ch_l = laser_to_base_ * pr_ch * base_to_laser_;
+  tf2::Transform base_to_laser_ = base_to_laser_tf;
+  tf2::Transform laser_to_base_ = base_to_laser_.inverse();
+  tf2::Transform pr_ch = Pose3ToTransform(odometry_relative_pose);
+  tf2::Transform pr_ch_l = laser_to_base_ * pr_ch * base_to_laser_;
   gtsam::Pose3 pr_ch_l_pose3 = TransformToPose3(pr_ch_l);
 
   worked_ =
       canonicalScan.processScan(from_ldp, to_ldp, Pose3ToPose2(pr_ch_l_pose3),
                                 outp_rel_pose_laser, noise_model);
 
-  tf::Transform corr_ch_l = Pose3ToTransform(Pose2ToPose3(outp_rel_pose_laser));
-  tf::Transform corr_ch = base_to_laser_ * corr_ch_l * laser_to_base_;
+  tf2::Transform corr_ch_l = Pose3ToTransform(Pose2ToPose3(outp_rel_pose_laser));
+  tf2::Transform corr_ch = base_to_laser_ * corr_ch_l * laser_to_base_;
   outp_rel_pose_laser = Pose3ToPose2(TransformToPose3(corr_ch));
 
   if (worked_) {
@@ -41,10 +45,10 @@ gtsam::Pose3 doCSM_impl(const sensor_msgs::LaserScan& from_scan,
   return (result_pose);
 }
 
-sensor_msgs::LaserScan SmoothScan(
-    const sensor_msgs::LaserScanConstPtr& msg_in) {
+sensor_msgs::msg::LaserScan SmoothScan(
+    const sensor_msgs::msg::LaserScan::SharedPtr& msg_in) {
   return *msg_in;
-  sensor_msgs::LaserScan msg_out = *msg_in;
+  sensor_msgs::msg::LaserScan msg_out = *msg_in;
 
   if (msg_out.ranges.size() < 3) return msg_out;
 
@@ -95,8 +99,12 @@ namespace omnimapper {
 ////////////////////////////////////////////////////////////////////////////////
 template <typename LScanT>
 CanonicalScanMatcherPlugin<LScanT>::CanonicalScanMatcherPlugin(
-    omnimapper::OmniMapperBase* mapper)
-    : nh_("~"),
+    omnimapper::OmniMapperBase* mapper, std::shared_ptr<rclcpp::Node> ros_node,
+                                 std::shared_ptr<tf2_ros::Buffer> tf_buffer)
+    : ros_node_(ros_node),
+      tf_buffer_(tf_buffer),
+      lc_canonical_scan_(ros_node),
+      seq_canonical_scan_(ros_node),
       mapper_(mapper),
       initialized_(false),
       have_new_lscan_(false),
@@ -118,17 +126,16 @@ CanonicalScanMatcherPlugin<LScanT>::CanonicalScanMatcherPlugin(
       paused_(false),
       count_(0),
       trigger_(new omnimapper::TriggerAlways()),
-      triggered_time_(ros::Time::now().toBoost()),
-      tf_listener_(ros::Duration(100.0)) {
-  seq_canonical_scan_.initParams(nh_);
-  lc_canonical_scan_.initParams(nh_);
+      triggered_time_(RosTimeToBoost(ros_node_->now())) {
+  seq_canonical_scan_.initParams();
+  lc_canonical_scan_.initParams();
   have_new_lscan_ = false;
   first_ = true;
 
-  laser_scan_msg_pub1_ = nh_.advertise<sensor_msgs::LaserScan>("scan1", 0);
-  laser_scan_msg_pub2_ = nh_.advertise<sensor_msgs::LaserScan>("scan2", 0);
+  laser_scan_msg_pub1_ = ros_node_->create_publisher<sensor_msgs::msg::LaserScan>("scan1", 0);
+  laser_scan_msg_pub2_ = ros_node_->create_publisher<sensor_msgs::msg::LaserScan>("scan2", 0);
   visualization_marker_array_pub_ =
-      nh_.advertise<visualization_msgs::MarkerArray>(
+      ros_node_->create_publisher<visualization_msgs::msg::MarkerArray>(
           "/visualization_marker_array", 0);
 }
 
@@ -141,9 +148,9 @@ template <typename LScanT>
 void CanonicalScanMatcherPlugin<LScanT>::laserScanCallback(
     const LaserScanPtr& lscan) {
   if (debug_)
-    std::cout << "CSMPlugin: laser callback: " << ros::Time::now() << std::endl;
+    std::cout << "CSMPlugin: laser callback: " << ros_node_->now().seconds() << std::endl;
 
-  Time measurement_time = lscan->header.stamp.toBoost();
+  Time measurement_time = RosTimeToBoost(lscan->header.stamp);
   bool use_measurement = (*trigger_)(measurement_time);
   if (!use_measurement) return;
 
@@ -167,8 +174,9 @@ void CanonicalScanMatcherPlugin<LScanT>::spin() {
 ////////////////////////////////////////////////////////////////////////////////
 template <typename LScanT>
 bool CanonicalScanMatcherPlugin<LScanT>::spinOnce() {
-  ros::Time start_time = ros::Time::now();
-  if (debug_) std::cout << "CSMPlugin: spin start: " << start_time << std::endl;
+  const rclcpp::Time start_time = ros_node_->now();
+  if (debug_) std::cout << "CSMPlugin: spin start: "
+                        << start_time.seconds() << std::endl;
 
   LaserScanPtr current_lscan;
 
@@ -183,8 +191,7 @@ bool CanonicalScanMatcherPlugin<LScanT>::spinOnce() {
 
   gtsam::Symbol current_sym;
   boost::posix_time::ptime current_time =
-      current_lscan->header.stamp
-          .toBoost();  // omnimapper::stamp2ptime(current_lscan->header.stamp);
+      RosTimeToBoost(current_lscan->header.stamp);
 
   mapper_->getPoseSymbolAtTime(current_time, current_sym);
 
@@ -195,10 +202,10 @@ bool CanonicalScanMatcherPlugin<LScanT>::spinOnce() {
       std::pair<gtsam::Symbol, LaserScanPtr>(current_sym, current_lscan));
 
   try {
-    sensor_msgs::PointCloud2 scan_cloud;
+    sensor_msgs::msg::PointCloud2 scan_cloud;
     projector_.transformLaserScanToPointCloud(base_frame_name_, *current_lscan,
-                                              scan_cloud, tf_listener_);
-    clouds_.insert(std::pair<gtsam::Symbol, sensor_msgs::PointCloud2>(
+                                              scan_cloud, *tf_buffer_);
+    clouds_.insert(std::pair<gtsam::Symbol, sensor_msgs::msg::PointCloud2>(
         current_sym, scan_cloud));
 
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(
@@ -208,8 +215,8 @@ bool CanonicalScanMatcherPlugin<LScanT>::spinOnce() {
     gtsam::Point3 laser_centroid = GetMeanLaserPoint(cloud);
     lscan_centroids_.insert(
         std::pair<gtsam::Symbol, gtsam::Point3>(current_sym, laser_centroid));
-  } catch (tf::TransformException ex) {
-    ROS_WARN("No transform yet!\n");
+  } catch (tf2::TransformException ex) {
+    RCLCPP_WARN(ros_node_->get_logger(), "No transform yet!\n");
     return false;
   }
 
@@ -238,9 +245,9 @@ bool CanonicalScanMatcherPlugin<LScanT>::spinOnce() {
   // latest_icp_thread.join ();
 
   if (debug_) {
-    ros::Time end_time = ros::Time::now();
-    ros::Duration spin_time = end_time - start_time;
-    std::cout << "CSMPlugin: spin end: " << spin_time << std::endl;
+    const rclcpp::Time end_time = ros_node_->now();
+    const rclcpp::Duration spin_time = end_time - start_time;
+    std::cout << "CSMPlugin: spin end: " << spin_time.seconds() << std::endl;
   }
 
   {
@@ -252,20 +259,20 @@ bool CanonicalScanMatcherPlugin<LScanT>::spinOnce() {
 template <typename LScanT>
 bool CanonicalScanMatcherPlugin<LScanT>::getBaseToLaserTf(
     const std::string& frame_id) {
-  ros::Time t = ros::Time::now();
+  rclcpp::Time t = ros_node_->now();
 
-  tf::StampedTransform base_to_laser_tf;
+  geometry_msgs::msg::TransformStamped base_to_laser_tf;
   try {
-    tf_listener_.waitForTransform(base_frame_name_, frame_id, t,
-                                  ros::Duration(1.0));
-    tf_listener_.lookupTransform(base_frame_name_, frame_id, t,
-                                 base_to_laser_tf);
-  } catch (tf::TransformException ex) {
-    ROS_WARN("Could not get initial transform from base to laser frame, %s",
+    base_to_laser_tf = tf_buffer_->lookupTransform(base_frame_name_, frame_id, tf2_ros::fromMsg(t), tf2::durationFromSec(1.0));
+  } catch (tf2::TransformException ex) {
+    RCLCPP_WARN(ros_node_->get_logger(), "Could not get initial transform from base to laser frame, %s",
              ex.what());
     return false;
   }
-  base_to_laser_ = base_to_laser_tf;
+  tf2::Stamped<tf2::Transform> base_to_laser_tf_stamped;
+  fromMsg(base_to_laser_tf, base_to_laser_tf_stamped);
+
+  base_to_laser_ = base_to_laser_tf_stamped;
   laser_to_base_ = base_to_laser_.inverse();
 
   return true;
@@ -311,18 +318,18 @@ bool CanonicalScanMatcherPlugin<LScanT>::addConstraint(
     vis_scan1->header.frame_id = "/odom";
     LaserScanPtr vis_scan2(new LScan(*scan2));
     vis_scan2->header.frame_id = "/odom";
-    laser_scan_msg_pub1_.publish(*vis_scan1);
-    laser_scan_msg_pub2_.publish(*vis_scan2);
-    visualization_msgs::MarkerArray marker_array;
+    laser_scan_msg_pub1_->publish(*vis_scan1);
+    laser_scan_msg_pub2_->publish(*vis_scan2);
+    visualization_msgs::msg::MarkerArray marker_array;
 
     gtsam::Vector csm_quat = relative_pose.rotation().quaternion();
-    visualization_msgs::Marker csm_arrow;
+    visualization_msgs::msg::Marker csm_arrow;
     csm_arrow.header.frame_id = "/odom";
-    csm_arrow.header.stamp = ros::Time();
+    csm_arrow.header.stamp = rclcpp::Time();
     csm_arrow.ns = "csm_estimate";
     csm_arrow.id = 0;
-    csm_arrow.type = visualization_msgs::Marker::ARROW;
-    csm_arrow.action = visualization_msgs::Marker::ADD;
+    csm_arrow.type = visualization_msgs::msg::Marker::ARROW;
+    csm_arrow.action = visualization_msgs::msg::Marker::ADD;
     csm_arrow.color.a = 0.5;
     csm_arrow.color.r = 1.0;
     csm_arrow.color.g = 0.0;
@@ -339,13 +346,13 @@ bool CanonicalScanMatcherPlugin<LScanT>::addConstraint(
     csm_arrow.pose.orientation.z = csm_quat[3];
     marker_array.markers.push_back(csm_arrow);
 
-    visualization_msgs::Marker csm_sphere;
+    visualization_msgs::msg::Marker csm_sphere;
     csm_sphere.header.frame_id = "/odom";
-    csm_sphere.header.stamp = ros::Time();
+    csm_sphere.header.stamp = rclcpp::Time();
     csm_sphere.ns = "csm_pose";
     csm_sphere.id = 0;
-    csm_sphere.type = visualization_msgs::Marker::SPHERE;
-    csm_sphere.action = visualization_msgs::Marker::ADD;
+    csm_sphere.type = visualization_msgs::msg::Marker::SPHERE;
+    csm_sphere.action = visualization_msgs::msg::Marker::ADD;
     csm_sphere.color.a = 0.5;
     csm_sphere.color.r = 1.0;
     csm_sphere.color.g = 0.0;
@@ -359,13 +366,13 @@ bool CanonicalScanMatcherPlugin<LScanT>::addConstraint(
     marker_array.markers.push_back(csm_sphere);
 
     gtsam::Vector odom_quat = initial_guess.rotation().quaternion();
-    visualization_msgs::Marker odom_arrow;
+    visualization_msgs::msg::Marker odom_arrow;
     odom_arrow.header.frame_id = "/odom";
-    odom_arrow.header.stamp = ros::Time();
+    odom_arrow.header.stamp = rclcpp::Time();
     odom_arrow.ns = "odom_estimate";
     odom_arrow.id = 0;
-    odom_arrow.type = visualization_msgs::Marker::ARROW;
-    odom_arrow.action = visualization_msgs::Marker::ADD;
+    odom_arrow.type = visualization_msgs::msg::Marker::ARROW;
+    odom_arrow.action = visualization_msgs::msg::Marker::ADD;
     odom_arrow.color.a = 0.5;
     odom_arrow.color.r = 0.0;
     odom_arrow.color.g = 1.0;
@@ -382,13 +389,13 @@ bool CanonicalScanMatcherPlugin<LScanT>::addConstraint(
     odom_arrow.pose.orientation.z = odom_quat[3];
     marker_array.markers.push_back(odom_arrow);
 
-    visualization_msgs::Marker odom_sphere;
+    visualization_msgs::msg::Marker odom_sphere;
     odom_sphere.header.frame_id = "/odom";
-    odom_sphere.header.stamp = ros::Time();
+    odom_sphere.header.stamp = rclcpp::Time();
     odom_sphere.ns = "odom_position";
     odom_sphere.id = 0;
-    odom_sphere.type = visualization_msgs::Marker::SPHERE;
-    odom_sphere.action = visualization_msgs::Marker::ADD;
+    odom_sphere.type = visualization_msgs::msg::Marker::SPHERE;
+    odom_sphere.action = visualization_msgs::msg::Marker::ADD;
     odom_sphere.color.a = 0.5;
     odom_sphere.color.r = 0.0;
     odom_sphere.color.g = 1.0;
@@ -401,7 +408,7 @@ bool CanonicalScanMatcherPlugin<LScanT>::addConstraint(
     odom_sphere.pose.position.z = initial_guess.z();
     marker_array.markers.push_back(odom_sphere);
 
-    visualization_marker_array_pub_.publish(marker_array);
+    visualization_marker_array_pub_->publish(marker_array);
   }
 
   if (!always_add)
@@ -506,16 +513,16 @@ CanonicalScanMatcherPlugin<LScanT>::getLaserScanPtr(gtsam::Symbol sym) {
 }
 
 template <typename LScanT>
-sensor_msgs::PointCloud2 CanonicalScanMatcherPlugin<LScanT>::getPC2(
+sensor_msgs::msg::PointCloud2 CanonicalScanMatcherPlugin<LScanT>::getPC2(
     gtsam::Symbol sym) {
   if (clouds_.count(sym) > 0)
     return (clouds_.at(sym));
   else {
-    sensor_msgs::PointCloud2 empty;
+    sensor_msgs::msg::PointCloud2 empty;
     return (empty);
   }
 }
 
 }  // namespace omnimapper
 
-template class omnimapper::CanonicalScanMatcherPlugin<sensor_msgs::LaserScan>;
+template class omnimapper::CanonicalScanMatcherPlugin<sensor_msgs::msg::LaserScan>;
