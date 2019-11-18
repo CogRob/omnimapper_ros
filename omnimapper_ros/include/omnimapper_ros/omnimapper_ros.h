@@ -55,7 +55,6 @@
 #include "omnimapper_ros/omnimapper_visualizer_rviz.h"
 #include "omnimapper_ros/ros_tf_utils.h"
 #include "omnimapper_ros/tf_pose_plugin.h"
-#include "omnimapper_ros_msgs/srv/output_map_tsdf.hpp"
 #include "organized_segmentation_tools/organized_segmentation_tbb.h"
 #include "pcl_conversions/pcl_conversions.h"
 #include "sensor_msgs/msg/laser_scan.hpp"
@@ -95,11 +94,6 @@ class OmniMapperROS {
   // Publish the current pose in the map frame
   void publishCurrentPose();
 
-  // Service call for generating a map TSDF
-  bool generateMapTSDFCallback(
-      const omnimapper_ros_msgs::srv::OutputMapTSDF::Request& req,
-      omnimapper_ros_msgs::srv::OutputMapTSDF::Response& res);
-
   void resetEvaluation();
 
  protected:
@@ -128,15 +122,6 @@ class OmniMapperROS {
   // Edge ICP Plugin
   omnimapper::ICPPoseMeasurementPlugin<PointT> edge_icp_plugin_;
 
-  // Plane Plugin
-  // omnimapper::PlaneMeasurementPlugin<PointT> plane_plugin_;
-
-  // Bounded Plane Plugin
-  // omnimapper::BoundedPlanePlugin<PointT> bounded_plane_plugin_;
-
-  // Object Plugin
-  // omnimapper::ObjectPlugin<PointT> object_plugin_;
-
   // CSM Plugin
   omnimapper::CanonicalScanMatcherPlugin<sensor_msgs::msg::LaserScan>
       csm_plugin_;
@@ -147,11 +132,6 @@ class OmniMapperROS {
   // CSM Visualization
   omnimapper::CSMVisualizerRViz<sensor_msgs::msg::LaserScan> csm_vis_plugin_;
 
-  // TSDF Plugin
-  // omnimapper::TSDFOutputPlugin<PointT> tsdf_plugin_;
-
-  // omnimapper::ErrorEvaluationPlugin eval_plugin_;
-
   // Organized Feature Extraction
   cogrob::OrganizedSegmentationTBB<PointT> organized_segmentation_;
 
@@ -160,9 +140,6 @@ class OmniMapperROS {
       pointcloud_sub_;
 
   rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr laserScan_sub_;
-
-  rclcpp::Service<omnimapper_ros_msgs::srv::OutputMapTSDF>::SharedPtr
-      generate_tsdf_srv_;
 
   // Mapper config
   bool use_planes_;
@@ -235,9 +212,6 @@ class OmniMapperROS {
   bool draw_clusters_;
   bool draw_icp_clouds_always_;
 
-  // TSDF plugin params
-  bool use_tsdf_plugin_;
-
   // Error plugin params
   bool use_error_plugin_;
   bool use_error_eval_plugin_;
@@ -263,7 +237,6 @@ class OmniMapperROS {
   std::string evaluation_ground_truth_txt_path_;
   std::string evaluation_output_trajectory_txt_path_;
   bool evaluation_mode_write_trajectory_;
-  bool evaluation_mode_write_tsdf_;
   bool evaluation_mode_paused_;
   bool use_organized_segmentation_;
   bool evaluation_show_frames_;

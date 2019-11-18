@@ -37,29 +37,31 @@
  */
 
 #include <omnimapper_ros/omnimapper_ros.h>
-#include <pcl/io/openni_grabber.h>
 
 template <typename PointT>
-OmniMapperROS<PointT>::OmniMapperROS(ros::NodeHandle nh)
-    : n_("~"),
+OmniMapperROS<PointT>::OmniMapperROS(std::shared_ptr<rclcpp::Node> ros_node)
+    : ros_node_(ros_node),
+      tf_buffer_(std::make_shared<tf2_ros::Buffer>(ros_node->get_clock(),
+                                                   tf2::durationFromSec(500))),
+      tf_listener_(tf_buffer_),
+      tf_broadcaster_(ros_node_),
       omb_(),
       tf_plugin_(&omb_),
       no_motion_plugin_(&omb_),
       icp_plugin_(&omb_),
       edge_icp_plugin_(&omb_),
-      // bounded_plane_plugin_ (&omb_), // Comning soon...
       csm_plugin_(&omb_),
       vis_plugin_(&omb_),
       csm_vis_plugin_(&omb_),
-      // tsdf_plugin_ (&omb_), //
-      organized_segmentation_(),
-      tf_listener_(ros::Duration(500.0)) {
-  if (debug_) ROS_INFO("OmniMapperROS: Constructing... Loading ROS Params...");
+      organized_segmentation_() {
+  if (debug_)
+    RCLCPP_INFO(ros_node_->get_logger,
+                "OmniMapperROS: Constructing... Loading ROS Params...");
   loadROSParams();
 
   // Use ROS Time instead of system clock
   omnimapper::GetTimeFunctorPtr time_functor_ptr(
-      new omnimapper::GetROSTimeFunctor());
+      new omnimapper::GetROSTimeFunctor(ros_node_));
   omb_.setTimeFunctor(time_functor_ptr);
   omb_.setSuppressCommitWindow(suppress_commit_window_);
 
@@ -79,15 +81,15 @@ OmniMapperROS<PointT>::OmniMapperROS(ros::NodeHandle nh)
     while (!got_tf) {
       got_tf = true;
       try {
-        ROS_INFO("Waiting for initial pose from %s to %s",
-                 odom_frame_name_.c_str(), base_frame_name_.c_str());
-        ros::Time current_time = ros::Time::now();
-        tf_listener_.waitForTransform(odom_frame_name_, base_frame_name_,
-                                      current_time, ros::Duration(1.0));
-        tf_listener_.lookupTransform(odom_frame_name_, base_frame_name_,
-                                     current_time, init_transform);
+        RCLCPP_INFO(ros_node_->get_logger,
+                    "Waiting for initial pose from %s to %s",
+                    odom_frame_name_.c_str(), base_frame_name_.c_str());
+        rclcpp::Time current_time = ros_node_->now();
+        init_transform = tf_buffer_->lookupTransform(
+            odom_frame_name_, base_frame_name_, tf2_ros::fromMsg(current_time),
+            tf2::durationFromSec(1.0));
       } catch (tf::TransformException ex) {
-        ROS_INFO("Transform not yet available!");
+        RCLCPP_INFO(ros_node_->get_logger, "Transform not yet available!");
         got_tf = false;
       }
     }
@@ -159,15 +161,6 @@ OmniMapperROS<PointT>::OmniMapperROS(ros::NodeHandle nh)
   edge_icp_plugin_.setSaveFullResClouds(false);
   edge_icp_plugin_.setSensorToBaseFunctor(rgbd_to_base_ptr);
 
-  /*
-  // Set up the Bounded Plane Plugin
-  bounded_plane_plugin_.setRangeThreshold (plane_range_threshold_);
-  bounded_plane_plugin_.setAngularThreshold (plane_angular_threshold_);
-  bounded_plane_plugin_.setAngularNoise (plane_angular_noise_);
-  bounded_plane_plugin_.setRangeNoise (plane_range_noise_);
-  bounded_plane_plugin_.setSensorToBaseFunctor (rgbd_to_base_ptr);
-  */
-
   // Set up the feature extraction
   if (use_occ_edge_icp_) {
     boost::function<void(const CloudConstPtr&)> edge_icp_cloud_cb = boost::bind(
@@ -175,19 +168,6 @@ OmniMapperROS<PointT>::OmniMapperROS(ros::NodeHandle nh)
         &edge_icp_plugin_, _1);
     organized_segmentation_.setOccludingEdgeCallback(edge_icp_cloud_cb);
   }
-
-  /*
-  if (use_bounded_planes_)
-  {
-    ROS_INFO ("OmniMapperROS: Installing BoundedPlanePlugin callback.");
-    boost::function<void (std::vector<pcl::PlanarRegion<PointT>,
-  Eigen::aligned_allocator<pcl::PlanarRegion<PointT> > >, omnimapper::Time)>
-  plane_cb = boost::bind
-  (&omnimapper::BoundedPlanePlugin<PointT>::planarRegionCallback,
-  &bounded_plane_plugin_, _1, _2);
-    organized_segmentation_.setPlanarRegionStampedCallback (plane_cb);
-  }
-  */
 
   // Optionally use planes in the visualizer
   if (ar_mode_) {
@@ -214,17 +194,19 @@ OmniMapperROS<PointT>::OmniMapperROS(ros::NodeHandle nh)
   if (use_csm_) {
     // Subscribe to laser scan
     laserScan_sub_ =
-        n_.subscribe("/scan", 1, &OmniMapperROS::laserScanCallback, this);
+        ros_node_->create_subscription<sensor_msgs::msg::LaserScan>(
+            "/scan", 1,
+            [this](const sensor_msgs::msg::LaserScan::SharedPtr msg) {
+              this->laserScanCallback(msg);
+            });
 
     // Make a Trigger Functor: TODO: param this
-    // omnimapper::TriggerFunctorPtr trigger_functor_ptr (new
-    // omnimapper::TriggerPeriodic (time_functor_ptr, 2.0));
     omnimapper::TriggerFunctorPtr trigger_functor_ptr(
         new omnimapper::TriggerAlways());
     csm_plugin_.setTriggerFunctor(trigger_functor_ptr);
 
     boost::shared_ptr<
-        omnimapper::CanonicalScanMatcherPlugin<sensor_msgs::LaserScan> >
+        omnimapper::CanonicalScanMatcherPlugin<sensor_msgs::msg::LaserScan> >
         csm_ptr(&csm_plugin_);
     csm_vis_plugin_.setCSMPlugin(csm_ptr);
 
@@ -232,9 +214,9 @@ OmniMapperROS<PointT>::OmniMapperROS(ros::NodeHandle nh)
     boost::shared_ptr<omnimapper::OutputPlugin> csm_vis_ptr(&csm_vis_plugin_);
     omb_.addOutputPlugin(csm_vis_ptr);
 
-    boost::thread csm_thread(
-        &omnimapper::CanonicalScanMatcherPlugin<sensor_msgs::LaserScan>::spin,
-        &csm_plugin_);
+    boost::thread csm_thread(&omnimapper::CanonicalScanMatcherPlugin<
+                                 sensor_msgs::msg::LaserScan>::spin,
+                             &csm_plugin_);
   }
 
   // Set the ICP Plugin on the visualizer
@@ -244,9 +226,11 @@ OmniMapperROS<PointT>::OmniMapperROS(ros::NodeHandle nh)
 
   // Subscribe to Point Clouds
   pointcloud_sub_ =
-      n_.subscribe(cloud_topic_name_, 1, &OmniMapperROS::cloudCallback,
-                   this);  //("/camera/depth/points", 1,
-                           //&OmniMapperHandheldNode::cloudCallback, this);
+      ros_node_->create_subscription<sensor_msgs::msg::PointCloud2>(
+          cloud_topic_name_, 1,
+          [this](const sensor_msgs::msg::PointCloud2::SharedPtr msg) {
+            this->cloudCallback(msg);
+          });
 
   // Install the visualizer
   if (use_rviz_plugin_) {
@@ -256,17 +240,6 @@ OmniMapperROS<PointT>::OmniMapperROS(ros::NodeHandle nh)
     boost::shared_ptr<omnimapper::OutputPlugin> vis_ptr(&vis_plugin_);
     omb_.addOutputPlugin(vis_ptr);
   }
-
-  // Set up the TSDF Plugin
-  // if (use_tsdf_plugin_)
-  // {
-  //   tsdf_plugin_.setICPPlugin (icp_ptr);
-  //   boost::shared_ptr<omnimapper::OutputPlugin> tsdf_ptr (&tsdf_plugin_);
-  //   omb_.addOutputPlugin (tsdf_ptr);
-  // }
-
-  generate_tsdf_srv_ = n_.advertiseService(
-      "generate_map_tsdf", &OmniMapperROS::generateMapTSDFCallback, this);
 
   // OmniMapper thread
   omb_.setDebug(false);
@@ -283,113 +256,135 @@ OmniMapperROS<PointT>::OmniMapperROS(ros::NodeHandle nh)
 
   if (use_organized_segmentation_) organized_segmentation_.spin();
 
-  if (debug_) ROS_INFO("OmniMapperROS: Constructor complete.");
+  if (debug_)
+    RCLCPP_INFO(ros_node_->get_logger, "OmniMapperROS: Constructor complete.");
 }
 
 template <typename PointT>
 void OmniMapperROS<PointT>::loadROSParams() {
   // Load some params
-  n_.param("use_planes", use_planes_, true);
-  n_.param("use_bounded_planes", use_bounded_planes_, true);
-  n_.param("use_objects", use_objects_, true);
-  n_.param("use_csm", use_csm_, true);
-  n_.param("use_icp", use_icp_, true);
-  n_.param("use_occ_edge_icp", use_occ_edge_icp_, false);
-  n_.param("use_tf", use_tf_, true);
-  n_.param("use_tsdf_plugin", use_tsdf_plugin_, true);
-  n_.param("use_error_plugin", use_error_plugin_, false);
-  n_.param("use_error_eval_plugin", use_error_eval_plugin_, false);
-  n_.param("use_no_motion", use_no_motion_, false);
-  n_.param("odom_frame_name", odom_frame_name_, std::string("/odom"));
-  n_.param("base_frame_name", base_frame_name_,
-           std::string("/camera_depth_optical_frame"));
-  n_.param("cloud_topic_name", cloud_topic_name_,
-           std::string("/throttled_points"));
-  n_.param("rgbd_frame_name", rgbd_frame_name_,
-           std::string("/camera_rgb_optical_frame"));
-  n_.param("icp_leaf_size", icp_leaf_size_, 0.05);
-  n_.param("icp_max_correspondence_distance", icp_max_correspondence_distance_,
-           0.5);
-  n_.param("icp_score_thresh", icp_score_thresh_, 0.8);
-  n_.param("icp_trans_noise", icp_trans_noise_, 0.1);
-  n_.param("icp_rot_noise", icp_rot_noise_, 0.1);
-  n_.param("icp_add_identity_on_fail", icp_add_identity_on_fail_, false);
-  n_.param("icp_add_loop_closures", icp_add_loop_closures_, true);
-  n_.param("icp_loop_closure_distance_threshold",
-           icp_loop_closure_distance_threshold_, 1.0);
-  n_.param("icp_loop_closure_score_threshold",
-           icp_loop_closure_score_threshold_, 0.8);
-  n_.param("icp_loop_closure_pose_index_threshold",
-           icp_loop_closure_pose_index_threshold_, 20);
-  n_.param("icp_save_full_res_clouds", icp_save_full_res_clouds_, false);
-  n_.param("occ_edge_trans_noise", occ_edge_trans_noise_, 0.1);
-  n_.param("occ_edge_rot_noise", occ_edge_rot_noise_, 0.1);
-  n_.param("occ_edge_score_thresh", occ_edge_score_thresh_, 0.1);
-  n_.param("occ_edge_max_correspondence_dist",
-           occ_edge_max_correspondence_dist_, 0.1);
-  n_.param("occ_edge_add_identity_on_fail", occ_edge_add_identity_on_fail_,
-           false);
-  n_.param("plane_range_threshold", plane_range_threshold_, 0.6);
-  n_.param("plane_angular_threshold", plane_angular_threshold_,
-           pcl::deg2rad(10.0));
-  n_.param("plane_range_noise", plane_range_noise_, 0.2);
-  n_.param("plane_angular_noise", plane_angular_noise_, 0.26);
-  n_.param("tf_trans_noise", tf_trans_noise_, 0.05);
-  n_.param("tf_rot_noise", tf_rot_noise_, pcl::deg2rad(10.0));
-  n_.param("tf_roll_noise", tf_roll_noise_, tf_rot_noise_);
-  n_.param("tf_pitch_noise", tf_pitch_noise_, tf_rot_noise_);
-  n_.param("tf_yaw_noise", tf_yaw_noise_, tf_rot_noise_);
-  n_.param("use_init_pose", use_init_pose_, false);
-  n_.param("suppress_commit_window", suppress_commit_window_, false);
-  n_.param("init_pose_from_tf", init_pose_from_tf_, false);
-  n_.param("init_x", init_x_, 0.0);
-  n_.param("init_y", init_y_, 0.0);
-  n_.param("init_z", init_z_, 0.0);
-  n_.param("init_qx", init_qx_, 0.0);
-  n_.param("init_qy", init_qy_, 0.0);
-  n_.param("init_qz", init_qz_, 0.0);
-  n_.param("init_qw", init_qw_, 1.0);
-  n_.param("use_rviz_plugin", use_rviz_plugin_, true);
-  n_.param("draw_pose_array", draw_pose_array_, true);
-  n_.param("draw_pose_graph", draw_pose_graph_, true);
-  n_.param("draw_label_cloud", draw_label_cloud_, true);
-  n_.param("draw_clusters", draw_clusters_, false);
-  n_.param("draw_icp_clouds_always", draw_icp_clouds_always_, false);
-  n_.param("use_label_cloud", use_label_cloud_, true);
-  n_.param("add_pose_per_cloud", add_pose_per_cloud_, true);
-  n_.param("broadcast_map_to_odom", broadcast_map_to_odom_, false);
-  n_.param("broadcast_current_pose", broadcast_current_pose_, false);
-  n_.param("use_distortion_model", use_distortion_model_, false);
-  n_.param("use_rgbd_sensor_base_tf_functor", use_rgbd_sensor_base_tf_functor_,
-           true);
-  n_.param("evaluation_mode", evaluation_mode_, false);
-  n_.param("evaluation_pcd_path", evaluation_pcd_path_, std::string(""));
-  n_.param("evaluation_associated_txt_path", evaluation_associated_txt_path_,
-           std::string(""));
-  n_.param("evaluation_ground_truth_txt_path",
-           evaluation_ground_truth_txt_path_, std::string(""));
-  n_.param("evaluation_output_trajectory_txt_path",
-           evaluation_output_trajectory_txt_path_, std::string(""));
-  n_.param("evaluation_mode_write_trajectory",
-           evaluation_mode_write_trajectory_, true);
-  n_.param("evaluation_mode_write_tsdf", evaluation_mode_write_tsdf_, false);
-  n_.param("evaluation_mode_paused", evaluation_mode_paused_, false);
-  n_.param("evaluation_show_frames", evaluation_show_frames_, true);
-  n_.param("object_database_location", object_database_location_,
-           std::string("/home/siddharth/kinect/"));
-  n_.param("object_loop_closures", object_loop_closures_, true);
-  n_.param("object_landmarks", object_landmarks_, true);
-  n_.param("save_object_models", save_object_models_, true);
-  n_.param("object_min_height", object_min_height_, 0.3);
-  n_.param("use_organized_segmentation", use_organized_segmentation_, true);
-  n_.param("debug", debug_, false);
-  n_.param("ar_mode", ar_mode_, false);
+  ros_node_->get_parameter_or("use_planes", use_planes_, true);
+  ros_node_->get_parameter_or("use_bounded_planes", use_bounded_planes_, true);
+  ros_node_->get_parameter_or("use_objects", use_objects_, true);
+  ros_node_->get_parameter_or("use_csm", use_csm_, true);
+  ros_node_->get_parameter_or("use_icp", use_icp_, true);
+  ros_node_->get_parameter_or("use_occ_edge_icp", use_occ_edge_icp_, false);
+  ros_node_->get_parameter_or("use_tf", use_tf_, true);
+  ros_node_->get_parameter_or("use_error_plugin", use_error_plugin_, false);
+  ros_node_->get_parameter_or("use_error_eval_plugin", use_error_eval_plugin_,
+                              false);
+  ros_node_->get_parameter_or("use_no_motion", use_no_motion_, false);
+  ros_node_->get_parameter_or("odom_frame_name", odom_frame_name_,
+                              std::string("/odom"));
+  ros_node_->get_parameter_or("base_frame_name", base_frame_name_,
+                              std::string("/camera_depth_optical_frame"));
+  ros_node_->get_parameter_or("cloud_topic_name", cloud_topic_name_,
+                              std::string("/throttled_points"));
+  ros_node_->get_parameter_or("rgbd_frame_name", rgbd_frame_name_,
+                              std::string("/camera_rgb_optical_frame"));
+  ros_node_->get_parameter_or("icp_leaf_size", icp_leaf_size_, 0.05);
+  ros_node_->get_parameter_or("icp_max_correspondence_distance",
+                              icp_max_correspondence_distance_, 0.5);
+  ros_node_->get_parameter_or("icp_score_thresh", icp_score_thresh_, 0.8);
+  ros_node_->get_parameter_or("icp_trans_noise", icp_trans_noise_, 0.1);
+  ros_node_->get_parameter_or("icp_rot_noise", icp_rot_noise_, 0.1);
+  ros_node_->get_parameter_or("icp_add_identity_on_fail",
+                              icp_add_identity_on_fail_, false);
+  ros_node_->get_parameter_or("icp_add_loop_closures", icp_add_loop_closures_,
+                              true);
+  ros_node_->get_parameter_or("icp_loop_closure_distance_threshold",
+                              icp_loop_closure_distance_threshold_, 1.0);
+  ros_node_->get_parameter_or("icp_loop_closure_score_threshold",
+                              icp_loop_closure_score_threshold_, 0.8);
+  ros_node_->get_parameter_or("icp_loop_closure_pose_index_threshold",
+                              icp_loop_closure_pose_index_threshold_, 20);
+  ros_node_->get_parameter_or("icp_save_full_res_clouds",
+                              icp_save_full_res_clouds_, false);
+  ros_node_->get_parameter_or("occ_edge_trans_noise", occ_edge_trans_noise_,
+                              0.1);
+  ros_node_->get_parameter_or("occ_edge_rot_noise", occ_edge_rot_noise_, 0.1);
+  ros_node_->get_parameter_or("occ_edge_score_thresh", occ_edge_score_thresh_,
+                              0.1);
+  ros_node_->get_parameter_or("occ_edge_max_correspondence_dist",
+                              occ_edge_max_correspondence_dist_, 0.1);
+  ros_node_->get_parameter_or("occ_edge_add_identity_on_fail",
+                              occ_edge_add_identity_on_fail_, false);
+  ros_node_->get_parameter_or("plane_range_threshold", plane_range_threshold_,
+                              0.6);
+  ros_node_->get_parameter_or("plane_angular_threshold",
+                              plane_angular_threshold_, pcl::deg2rad(10.0));
+  ros_node_->get_parameter_or("plane_range_noise", plane_range_noise_, 0.2);
+  ros_node_->get_parameter_or("plane_angular_noise", plane_angular_noise_,
+                              0.26);
+  ros_node_->get_parameter_or("tf_trans_noise", tf_trans_noise_, 0.05);
+  ros_node_->get_parameter_or("tf_rot_noise", tf_rot_noise_,
+                              pcl::deg2rad(10.0));
+  ros_node_->get_parameter_or("tf_roll_noise", tf_roll_noise_, tf_rot_noise_);
+  ros_node_->get_parameter_or("tf_pitch_noise", tf_pitch_noise_, tf_rot_noise_);
+  ros_node_->get_parameter_or("tf_yaw_noise", tf_yaw_noise_, tf_rot_noise_);
+  ros_node_->get_parameter_or("use_init_pose", use_init_pose_, false);
+  ros_node_->get_parameter_or("suppress_commit_window", suppress_commit_window_,
+                              false);
+  ros_node_->get_parameter_or("init_pose_from_tf", init_pose_from_tf_, false);
+  ros_node_->get_parameter_or("init_x", init_x_, 0.0);
+  ros_node_->get_parameter_or("init_y", init_y_, 0.0);
+  ros_node_->get_parameter_or("init_z", init_z_, 0.0);
+  ros_node_->get_parameter_or("init_qx", init_qx_, 0.0);
+  ros_node_->get_parameter_or("init_qy", init_qy_, 0.0);
+  ros_node_->get_parameter_or("init_qz", init_qz_, 0.0);
+  ros_node_->get_parameter_or("init_qw", init_qw_, 1.0);
+  ros_node_->get_parameter_or("use_rviz_plugin", use_rviz_plugin_, true);
+  ros_node_->get_parameter_or("draw_pose_array", draw_pose_array_, true);
+  ros_node_->get_parameter_or("draw_pose_graph", draw_pose_graph_, true);
+  ros_node_->get_parameter_or("draw_label_cloud", draw_label_cloud_, true);
+  ros_node_->get_parameter_or("draw_clusters", draw_clusters_, false);
+  ros_node_->get_parameter_or("draw_icp_clouds_always", draw_icp_clouds_always_,
+                              false);
+  ros_node_->get_parameter_or("use_label_cloud", use_label_cloud_, true);
+  ros_node_->get_parameter_or("add_pose_per_cloud", add_pose_per_cloud_, true);
+  ros_node_->get_parameter_or("broadcast_map_to_odom", broadcast_map_to_odom_,
+                              false);
+  ros_node_->get_parameter_or("broadcast_current_pose", broadcast_current_pose_,
+                              false);
+  ros_node_->get_parameter_or("use_distortion_model", use_distortion_model_,
+                              false);
+  ros_node_->get_parameter_or("use_rgbd_sensor_base_tf_functor",
+                              use_rgbd_sensor_base_tf_functor_, true);
+  ros_node_->get_parameter_or("evaluation_mode", evaluation_mode_, false);
+  ros_node_->get_parameter_or("evaluation_pcd_path", evaluation_pcd_path_,
+                              std::string(""));
+  ros_node_->get_parameter_or("evaluation_associated_txt_path",
+                              evaluation_associated_txt_path_, std::string(""));
+  ros_node_->get_parameter_or("evaluation_ground_truth_txt_path",
+                              evaluation_ground_truth_txt_path_,
+                              std::string(""));
+  ros_node_->get_parameter_or("evaluation_output_trajectory_txt_path",
+                              evaluation_output_trajectory_txt_path_,
+                              std::string(""));
+  ros_node_->get_parameter_or("evaluation_mode_write_trajectory",
+                              evaluation_mode_write_trajectory_, true);
+  ros_node_->get_parameter_or("evaluation_mode_paused", evaluation_mode_paused_,
+                              false);
+  ros_node_->get_parameter_or("evaluation_show_frames", evaluation_show_frames_,
+                              true);
+  ros_node_->get_parameter_or("object_database_location",
+                              object_database_location_,
+                              std::string("/home/siddharth/kinect/"));
+  ros_node_->get_parameter_or("object_loop_closures", object_loop_closures_,
+                              true);
+  ros_node_->get_parameter_or("object_landmarks", object_landmarks_, true);
+  ros_node_->get_parameter_or("save_object_models", save_object_models_, true);
+  ros_node_->get_parameter_or("object_min_height", object_min_height_, 0.3);
+  ros_node_->get_parameter_or("use_organized_segmentation",
+                              use_organized_segmentation_, true);
+  ros_node_->get_parameter_or("debug", debug_, false);
+  ros_node_->get_parameter_or("ar_mode", ar_mode_, false);
 }
 
 template <typename PointT>
 void OmniMapperROS<PointT>::cloudCallback(
-    const sensor_msgs::PointCloud2ConstPtr& msg) {
-  if (debug_) ROS_INFO("OmniMapperROS got a cloud.");
+    const sensor_msgs::msg::PointCloud2::SharedPtr msg) {
+  if (debug_) RCLCPP_INFO(ros_node_->get_logger, "OmniMapperROS got a cloud.");
   double start_cb = pcl::getTime();
   double start_copy = pcl::getTime();
   CloudPtr cloud(new Cloud());
@@ -454,24 +449,15 @@ void OmniMapperROS<PointT>::cloudCallback(
 
 template <typename PointT>
 void OmniMapperROS<PointT>::laserScanCallback(
-    const sensor_msgs::LaserScanConstPtr& msg) {
-  if (debug_) ROS_INFO("OmniMapperROS: got a scan.");
+    const sensor_msgs::msg::LaserScan::SharedPtr msg) {
+  if (debug_) RCLCPP_INFO(ros_node_->get_logger, "OmniMapperROS: got a scan.");
 
   gtsam::Symbol sym;
 
-  boost::shared_ptr<sensor_msgs::LaserScan> lscanPtr1(
-      new sensor_msgs::LaserScan(*msg));
+  boost::shared_ptr<sensor_msgs::msg::LaserScan> lscanPtr1(
+      new sensor_msgs::msg::LaserScan(*msg));
   csm_plugin_.laserScanCallback(lscanPtr1);
   publishMapToOdom();
-}
-
-template <typename PointT>
-bool OmniMapperROS<PointT>::generateMapTSDFCallback(
-    omnimapper_ros::OutputMapTSDF::Request& req,
-    omnimapper_ros::OutputMapTSDF::Response& res) {
-  printf("TSDF Service call, calling tsdf plugin\n");
-  // tsdf_plugin_.generateTSDF (req.grid_size, req.resolution);
-  return (true);
 }
 
 template <typename PointT>
@@ -479,36 +465,29 @@ void OmniMapperROS<PointT>::publishMapToOdom() {
   gtsam::Pose3 current_pose;
   boost::posix_time::ptime current_time;
   omb_.getLatestPose(current_pose, current_time);
-  ros::Time current_time_ros = omnimapper::ptime2rostime(current_time);
-  tf::Transform current_pose_ros = omnimapper::pose3totf(current_pose);
+  rclcpp::Time current_time_ros = omnimapper::ptime2rostime(current_time);
+  tf2::Transform current_pose_ros = omnimapper::pose3totf(current_pose);
 
-  tf::Stamped<tf::Pose> odom_to_map;
+  tf2::Stamped<tf2::Pose> odom_to_map;
   try {
-    //        tf_listener_.transformPose ("/odom", tf::Stamped<tf::Pose>
-    //        (tf::btTransform (tf::btQuaternion (current_quat[1],
-    //        current_quat[2], current_quat[3], current_quat[0]), btVector3
-    //        (current_pose.x (), current_pose.y (), current_pose.z ())).inverse
-    //        (), current_time_ros, "/base_link"), odom_to_map);
-    tf_listener_.waitForTransform(odom_frame_name_, base_frame_name_,
-                                  current_time_ros, ros::Duration(0.05));
-    tf_listener_.transformPose(
-        odom_frame_name_,
-        tf::Stamped<tf::Pose>(current_pose_ros.inverse(), current_time_ros,
-                              base_frame_name_),
-        odom_to_map);
+    const geometry_msgs::msg::TransformStamped base_to_odom =
+        tf_buffer_.lookupTransform(odom_frame_name_, base_frame_name_,
+                                   tf2_ros::fromMsg(current_time_ros),
+                                   tf2::durationFromSec(0.05));
+    tf2::doTransform(current_pose_ros.inverse(), odom_to_map, base_to_odom);
   } catch (tf::TransformException e) {
-    ROS_ERROR(
-        "OmniMapperROS: Error: could not immediately get odom to base "
-        "transform\n");
+    RCLCPP_ERROR(ros_node_->get_logger(),
+                 "OmniMapperROS: Error: could not immediately get odom to base "
+                 "transform\n");
     odom_to_map.setIdentity();
     return;
   }
-  tf::Transform map_to_odom =
-      odom_to_map
-          .inverse();  // tf::Transform (tf::Quaternion (odom_to_map.getRotation
-                       // ()), tf::Point (odom_to_map.getOrigin ())
-  tf_broadcaster_.sendTransform(tf::StampedTransform(
-      map_to_odom, ros::Time::now(), "/map", odom_frame_name_));
+  tf2::Stamped<tf2::Transform> map_to_odom(
+      odom_to_map.inverse(), tf2_ros::toMsg(ros_node_->now()), "/map");
+  geometry_msgs::msg::TransformStamped map_to_odom_msg =
+      tf2::toMsg(map_to_odom);
+  map_to_odom_msg.child_frame_id = odom_frame_name_;
+  tf_broadcaster_.sendTransform(map_to_odom_msg);
 }
 
 template <typename PointT>
@@ -516,11 +495,15 @@ void OmniMapperROS<PointT>::publishCurrentPose() {
   gtsam::Pose3 current_pose;
   boost::posix_time::ptime current_time;
   omb_.getLatestPose(current_pose, current_time);
-  ros::Time current_time_ros = omnimapper::ptime2rostime(current_time);
-  tf::Transform current_pose_ros = omnimapper::pose3totf(current_pose);
+  rclcpp::Time current_time_ros = omnimapper::ptime2rostime(current_time);
 
-  tf_broadcaster_.sendTransform(tf::StampedTransform(
-      current_pose_ros, ros::Time::now(), "/map", "/current_pose"));
+  tf2::Stamped<tf2::Transform> current_pose_ros(
+      omnimapper::pose3totf(current_pose), tf2_ros::toMsg(ros_node_->now()),
+      "/map");
+  geometry_msgs::msg::TransformStamped current_pose_msg =
+      tf2::toMsg(current_pose_ros);
+  map_to_odom_msg.child_frame_id = "/current_pose";
+  tf_broadcaster_.sendTransform(map_to_odom_msg);
 }
 
 template <typename PointT>

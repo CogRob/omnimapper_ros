@@ -23,8 +23,8 @@ CanonicalScan::CanonicalScan(std::shared_ptr<rclcpp::Node> ros_node)
 
 void CanonicalScan::initParams() {
   // **** input type - laser scan, or point clouds?
-  // if false, will subscrive to LaserScan msgs on /scan.
-  // if true, will subscrive to PointCloud2 msgs on /cloud
+  // if false, will subscribe to LaserScan msgs on /scan.
+  // if true, will subscribe to PointCloud2 msgs on /cloud
   input_.min_reading = 0.1;
   input_.max_reading = 10.0;
   input_.do_compute_covariance = 1;
