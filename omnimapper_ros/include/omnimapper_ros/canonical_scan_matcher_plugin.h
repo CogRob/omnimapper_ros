@@ -24,12 +24,11 @@ namespace omnimapper {
 template <typename LScanT>
 class CanonicalScanMatcherPlugin {
   using BetweenPose3Ptr =
-      typename boost::shared_ptr<gtsam::BetweenFactor<gtsam::Pose3> >;
-  using LaserScanPtr =
-      typename boost::shared_ptr<sensor_msgs::msg::LaserScan> LaserScanPtr;
+      boost::shared_ptr<gtsam::BetweenFactor<gtsam::Pose3> >;
+  using LaserScanPtr = boost::shared_ptr<sensor_msgs::msg::LaserScan>;
   using LaserScanPConstPtr =
-      const typename boost::shared_ptr<sensor_msgs::msg::LaserScan>;
-  using LScan = typename sensor_msgs::msg::LaserScan LScan;
+      const boost::shared_ptr<sensor_msgs::msg::LaserScan>;
+  using LScan = sensor_msgs::msg::LaserScan;
 
  public:
   CanonicalScanMatcherPlugin(omnimapper::OmniMapperBase* mapper,
