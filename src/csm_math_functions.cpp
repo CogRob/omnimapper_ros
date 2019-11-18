@@ -5,8 +5,8 @@
 #define btMatrix3x3 tf::Matrix3x3
 #endif
 
-bool CheckMoveFarEnough(const tf::StampedTransform& last_pose,
-                        const tf::StampedTransform& curr_pose, double distance,
+bool CheckMoveFarEnough(const geometry_msgs::msg::TransformStamped& last_pose,
+                        const geometry_msgs::msg::TransformStamped& curr_pose, double distance,
                         double rot_thresh) {
   double dx = curr_pose.getOrigin().x() - last_pose.getOrigin().x();
   double dy = curr_pose.getOrigin().y() - last_pose.getOrigin().y();
@@ -17,7 +17,7 @@ bool CheckMoveFarEnough(const tf::StampedTransform& last_pose,
   return (dist >= distance) || (ang_dist >= rot_thresh);
 }
 
-gtsam::Pose3 GetPose(const tf::StampedTransform& transform) {
+gtsam::Pose3 GetPose(const geometry_msgs::msg::TransformStamped& transform) {
   //  return gtsam::Pose2(transform.getOrigin().x(),
   //		      transform.getOrigin().y(),
   //		      tf::getYaw(transform.getRotation()));
@@ -38,8 +38,8 @@ gtsam::Pose3 GetPose(const tf::StampedTransform& transform) {
       gtsam::Point3(transform.getOrigin().x(), transform.getOrigin().y(),
                     transform.getOrigin().z()));
 }
-gtsam::Pose3 GetRelativePose(const tf::StampedTransform& last_pose,
-                             const tf::StampedTransform& curr_pose) {
+gtsam::Pose3 GetRelativePose(const geometry_msgs::msg::TransformStamped& last_pose,
+                             const geometry_msgs::msg::TransformStamped& curr_pose) {
   gtsam::Pose3 initial = GetPose(last_pose);
   gtsam::Pose3 final = GetPose(curr_pose);
 
@@ -48,16 +48,16 @@ gtsam::Pose3 GetRelativePose(const tf::StampedTransform& last_pose,
   return odo;
 }
 
-tf::Transform Pose3ToTransform(const gtsam::Pose3& ps) {
-  tf::Transform t;
+tf2::Transform Pose3ToTransform(const gtsam::Pose3& ps) {
+  tf2::Transform t;
   t.setOrigin(btVector3(ps.x(), ps.y(), ps.z()));
-  tf::Quaternion q;
+  tf2::Quaternion q;
   gtsam::Vector ypr = ps.rotation().ypr();
   q.setRPY(ypr[2], ypr[1], ypr[0]);
   t.setRotation(q);
   return t;
 }
-gtsam::Pose3 TransformToPose3(const tf::Transform& t) {
+gtsam::Pose3 TransformToPose3(const tf2::Transform& t) {
   double roll, pitch, yaw;
   btMatrix3x3 m(t.getRotation());
   m.getRPY(roll, pitch, yaw);
@@ -66,15 +66,15 @@ gtsam::Pose3 TransformToPose3(const tf::Transform& t) {
       gtsam::Point3(t.getOrigin().x(), t.getOrigin().y(), t.getOrigin().z()));
 }
 
-tf::Transform Pose2ToTransform(const gtsam::Pose2& ps) {
-  tf::Transform t;
+tf2::Transform Pose2ToTransform(const gtsam::Pose2& ps) {
+  tf2::Transform t;
   t.setOrigin(btVector3(ps.x(), ps.y(), 0.0));
-  tf::Quaternion q;
+  tf2::Quaternion q;
   q.setRPY(0, 0, ps.theta());
   t.setRotation(q);
   return t;
 }
-gtsam::Pose2 TransformToPose2(const tf::Transform& t) {
+gtsam::Pose2 TransformToPose2(const tf2::Transform& t) {
   double roll, pitch, yaw;
   btMatrix3x3 m(t.getRotation());
   m.getRPY(roll, pitch, yaw);
@@ -84,7 +84,7 @@ gtsam::Pose2 TransformToPose2(const tf::Transform& t) {
 gtsam::Point3 btVectorToPoint3(const btVector3& vec) {
   return gtsam::Point3(vec.getX(), vec.getY(), vec.getZ());
 }
-gtsam::Pose3 btTransformToPose3(const tf::Transform& transform) {
+gtsam::Pose3 btTransformToPose3(const tf2::Transform& transform) {
   btVector3 col0 = transform.getBasis().getColumn(0);
   btVector3 col1 = transform.getBasis().getColumn(1);
   btVector3 col2 = transform.getBasis().getColumn(2);

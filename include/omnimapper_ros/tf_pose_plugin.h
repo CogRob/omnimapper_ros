@@ -8,8 +8,8 @@
 
 #include "omnimapper_ros/ros_tf_utils.h"
 #include "omnimapper_ros/ros_time_utils.h"
-#include "ros/ros.h"
-#include "tf/transform_listener.h"
+#include "rclcpp/rclcpp.hpp"
+#include "tf2_ros/transform_listener.h"
 
 namespace omnimapper {
 // Forward Declaration
@@ -26,7 +26,8 @@ class TFPosePlugin : public omnimapper::PosePlugin {
   std::shared_ptr<rclcpp::Node> ros_node_;
 
   /** \brief A TF listener. */
-  tf::TransformListener tf_listener_;
+  tf2_ros::Buffer tf_buffer_;
+  tf2_ros::TransformListener tf_listener_;
 
   std::string odom_frame_name_;
 

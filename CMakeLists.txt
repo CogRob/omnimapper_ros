@@ -27,6 +27,7 @@ find_package(sensor_msgs REQUIRED)
 find_package(laser_geometry REQUIRED)
 find_package(pcl_conversions REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
+find_package(Python3 COMPONENTS Development)
 
 find_package(GTSAM REQUIRED)
 set(EIGEN_INCLUDE_DIRS ${GTSAM_DIR}/../../../include/gtsam/3rdparty/Eigen)
@@ -35,6 +36,8 @@ find_package(Boost REQUIRED COMPONENTS system)
 
 find_package(PCL 1.7 REQUIRED)
 link_directories(${PCL_LIBRARY_DIRS})
+
+include_directories(BEFORE ${Python3_INCLUDE_DIRS})
 
 # Set include directories
 include_directories(
@@ -74,7 +77,7 @@ endif()
 add_library(try_headers src/try_headers.cpp)
 ament_target_dependencies(
   try_headers
-  ${Boost_LIBRARIES} ${PCL_LIBRARIES} rclcpp
+  ${Boost_LIBRARIES} ${PCL_LIBRARIES} rclcpp pcl_conversions
   omnimapper gtsam organized_segmentation_tools tcmalloc profiler tbb csm)
 
 # add_library(omnimapper_ros

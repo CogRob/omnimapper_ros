@@ -1,6 +1,6 @@
 #include <omnimapper_ros/ros_tf_utils.h>
 
-gtsam::Pose3 omnimapper::tf2pose3(tf::StampedTransform transform) {
+gtsam::Pose3 omnimapper::tf2pose3(const geometry_msgs::msg::TransformStamped& transform) {
   tf::Vector3 axis = transform.getRotation().getAxis();
   double len = sqrt(axis[0] * axis[0] + axis[1] * axis[1] + axis[2] * axis[2]);
   assert(len != 0);

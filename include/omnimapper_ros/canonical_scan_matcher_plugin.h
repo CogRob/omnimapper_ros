@@ -3,7 +3,7 @@
 #include <gtsam/geometry/Pose3.h>
 #include <gtsam/nonlinear/Symbol.h>
 #include <gtsam/slam/BetweenFactor.h>
-#include <laser_geometry/laser_geometry.h>
+#include <laser_geometry/laser_geometry.hpp>
 #include <omnimapper/omnimapper_base.h>
 #include <omnimapper/trigger.h>
 
@@ -13,7 +13,7 @@
 #include "pcl_conversions/pcl_conversions.h"
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/laser_scan.hpp"
-#include "tf/transform_listener.h"
+#include "tf2_ros/transform_listener.h"
 #include "visualization_msgs/msg/marker_array.hpp"
 
 namespace omnimapper {
@@ -50,7 +50,8 @@ class CanonicalScanMatcherPlugin {
  protected:
   std::shared_ptr<rclcpp::Node> ros_node_;
   OmniMapperBase* mapper_;
-  tf::TransformListener tf_listener_;
+  tf2_ros::Buffer tf_buffer_;
+  tf2_ros::TransformListener tf_listener_;
   laser_geometry::LaserProjection projector_;
   scan_tools::CanonicalScan seq_canonical_scan_;
   scan_tools::CanonicalScan lc_canonical_scan_;
@@ -85,8 +86,8 @@ class CanonicalScanMatcherPlugin {
   TriggerFunctorPtr trigger_;
   Time triggered_time_;
   // ros::Time triggered_time_;
-  tf::Transform base_to_laser_;
-  tf::Transform laser_to_base_;
+  tf2::Transform base_to_laser_;
+  tf2::Transform laser_to_base_;
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr
       visualization_marker_array_pub_;
   rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr
@@ -103,8 +104,8 @@ gtsam::Pose3 doCSM_impl(const sensor_msgs::msg::LaserScan& from_scan,
                         bool& worked,
                         gtsam::noiseModel::Gaussian::shared_ptr& noise_model,
                         scan_tools::CanonicalScan& canonicalScan,
-                        // const tf::StampedTransform& base_to_laser_tf,
-                        tf::Transform& base_to_laser_tf,
+                        // const tf2::Transform& base_to_laser_tf,
+                        tf2::Transform& base_to_laser_tf,
                         bool laser_mode = true);
 
 sensor_msgs::msg::LaserScan SmoothScan(
