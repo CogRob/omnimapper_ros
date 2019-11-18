@@ -93,6 +93,20 @@ ament_target_dependencies(
   ${Boost_LIBRARIES} ${PCL_LIBRARIES} rclcpp pcl_conversions
   omnimapper gtsam organized_segmentation_tools tcmalloc profiler tbb csm)
 
+add_executable(time_test src/time_test.cpp)
+ament_target_dependencies(
+  time_test omnimapper_ros_msgs
+  ${Boost_LIBRARIES} ${PCL_LIBRARIES} rclcpp pcl_conversions
+  omnimapper gtsam organized_segmentation_tools tcmalloc profiler tbb csm)
+
+target_link_libraries(
+  time_test ros_time_utils ${Boost_LIBRARIES} ${PCL_LIBRARIES} omnimapper gtsam organized_segmentation_tools tcmalloc
+  profiler tbb csm)
+
+install(TARGETS
+  time_test ros_time_utils
+  DESTINATION lib/${PROJECT_NAME})
+
 # add_library(omnimapper_ros
 #   src/ros_time_utils.cpp
 #   src/ros_tf_utils.cpp
