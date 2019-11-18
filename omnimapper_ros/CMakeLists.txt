@@ -89,6 +89,8 @@ add_library(get_transform_functor_tf src/get_transform_functor_tf.cpp)
 
 add_library(csm_visualizer src/csm_visualizer.cpp)
 
+add_library(omnimapper_visualizer_rviz src/omnimapper_visualizer_rviz.cpp)
+
 ament_target_dependencies(
   canonical_scan_matcher_plugin omnimapper_ros_msgs
   ${Boost_LIBRARIES} ${PCL_LIBRARIES} rclcpp pcl_conversions
@@ -96,6 +98,11 @@ ament_target_dependencies(
 
 ament_target_dependencies(
   try_headers omnimapper_ros_msgs
+  ${Boost_LIBRARIES} ${PCL_LIBRARIES} rclcpp pcl_conversions
+  omnimapper gtsam organized_segmentation_tools tcmalloc profiler tbb csm)
+
+ament_target_dependencies(
+  omnimapper_visualizer_rviz omnimapper_ros_msgs
   ${Boost_LIBRARIES} ${PCL_LIBRARIES} rclcpp pcl_conversions
   omnimapper gtsam organized_segmentation_tools tcmalloc profiler tbb csm)
 

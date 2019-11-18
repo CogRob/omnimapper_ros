@@ -131,7 +131,7 @@ class OmniMapperVisualizerRViz : public omnimapper::OutputPlugin {
   bool updated_;
 
   // Publisher for the trajectory
-  rclcpp::Publisher<geometry_msgs::msg::PoseArray> pose_array_pub_;
+  rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr pose_array_pub_;
 
   // Publisher for the map clouds
   rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr map_cloud_pub_;
@@ -164,9 +164,10 @@ class OmniMapperVisualizerRViz : public omnimapper::OutputPlugin {
   // Services.
   rclcpp::Service<omnimapper_ros_msgs::srv::WriteTrajectoryFile>::SharedPtr
       write_trajectory_srv_;
-  rclcpp::Service<omnimapper_ros_msgs::srv::VisualizeFullCloud>
+  rclcpp::Service<omnimapper_ros_msgs::srv::VisualizeFullCloud>::SharedPtr
       draw_icp_clouds_srv_;
-  rclcpp::Service<omnimapper_ros_msgs::srv::PublishModel> publish_model_srv_;
+  rclcpp::Service<omnimapper_ros_msgs::srv::PublishModel>::SharedPtr
+      publish_model_srv_;
 
   // ICP Plugin Ref
   boost::shared_ptr<omnimapper::ICPPoseMeasurementPlugin<PointT> > icp_plugin_;

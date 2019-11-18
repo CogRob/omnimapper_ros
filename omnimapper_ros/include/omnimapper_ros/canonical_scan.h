@@ -35,7 +35,7 @@ class CanonicalScan {
   bool use_cloud_input_;
 
  public:
-  CanonicalScan(std::shared_ptr<rclcpp::Node> ros_node);
+  explicit CanonicalScan(std::shared_ptr<rclcpp::Node> ros_node);
   void initParams();
   bool processScan(LDP& curr_ldp_scan, LDP& prev_ldp_scan,
                    const gtsam::Pose2& initial_rel_pose,
