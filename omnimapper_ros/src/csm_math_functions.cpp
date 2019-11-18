@@ -6,8 +6,8 @@
 #endif
 
 bool CheckMoveFarEnough(const geometry_msgs::msg::TransformStamped& last_pose,
-                        const geometry_msgs::msg::TransformStamped& curr_pose, double distance,
-                        double rot_thresh) {
+                        const geometry_msgs::msg::TransformStamped& curr_pose,
+                        double distance, double rot_thresh) {
   double dx = curr_pose.getOrigin().x() - last_pose.getOrigin().x();
   double dy = curr_pose.getOrigin().y() - last_pose.getOrigin().y();
   double dz = curr_pose.getOrigin().z() - last_pose.getOrigin().z();
@@ -38,8 +38,9 @@ gtsam::Pose3 GetPose(const geometry_msgs::msg::TransformStamped& transform) {
       gtsam::Point3(transform.getOrigin().x(), transform.getOrigin().y(),
                     transform.getOrigin().z()));
 }
-gtsam::Pose3 GetRelativePose(const geometry_msgs::msg::TransformStamped& last_pose,
-                             const geometry_msgs::msg::TransformStamped& curr_pose) {
+gtsam::Pose3 GetRelativePose(
+    const geometry_msgs::msg::TransformStamped& last_pose,
+    const geometry_msgs::msg::TransformStamped& curr_pose) {
   gtsam::Pose3 initial = GetPose(last_pose);
   gtsam::Pose3 final = GetPose(curr_pose);
 

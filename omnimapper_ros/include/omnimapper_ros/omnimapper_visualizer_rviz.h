@@ -74,8 +74,11 @@ class OmniMapperVisualizerRViz : public omnimapper::OutputPlugin {
                   Eigen::aligned_allocator<pcl::PlanarRegion<PointT> > >
           regions,
       omnimapper::Time t);
-  void drawBBox(pcl::PointCloud<pcl::PointXYZRGB>& cloud,
-                rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr marker_pub, int obj_idx);
+  void drawBBox(
+      pcl::PointCloud<pcl::PointXYZRGB>& cloud,
+      rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr
+          marker_pub,
+      int obj_idx);
   void labelCloudCallback(const CloudConstPtr& cloud,
                           const LabelCloudConstPtr& labels);
   void clusterCloudCallback(std::vector<CloudPtr> clusters, omnimapper::Time t,
@@ -136,25 +139,35 @@ class OmniMapperVisualizerRViz : public omnimapper::OutputPlugin {
   rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr map_cloud_pub_;
 
   // Publisher for Planar boundaries
-  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr planar_boundary_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr
+      planar_boundary_pub_;
 
   // Publisher for visualization marker arrays
-  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr marker_array_pub_;
+  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr
+      marker_array_pub_;
 
-  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr pose_covariances_pub_;
+  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr
+      pose_covariances_pub_;
 
   // Publishers for segmentation results of planes
-  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr segmented_plane_pub_;
-  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr segmented_label_cloud_pub_;
-  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr segmented_clusters_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr
+      segmented_plane_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr
+      segmented_label_cloud_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr
+      segmented_clusters_pub_;
 
   // Publisher for object observations
-  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr object_observation_pub_;
-  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr object_modeled_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr
+      object_observation_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr
+      object_modeled_pub_;
 
   // Services.
-  rclcpp::Service<omnimapper_ros_msgs::srv::WriteTrajectoryFile>::SharedPtr write_trajectory_srv_;
-  rclcpp::Service<omnimapper_ros_msgs::srv::VisualizeFullCloud> draw_icp_clouds_srv_;
+  rclcpp::Service<omnimapper_ros_msgs::srv::WriteTrajectoryFile>::SharedPtr
+      write_trajectory_srv_;
+  rclcpp::Service<omnimapper_ros_msgs::srv::VisualizeFullCloud>
+      draw_icp_clouds_srv_;
   rclcpp::Service<omnimapper_ros_msgs::srv::PublishModel> publish_model_srv_;
 
   // ICP Plugin Ref

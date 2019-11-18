@@ -60,11 +60,10 @@
 #include "omnimapper_ros_msgs/srv/output_map_tsdf.hpp"
 #include "organized_segmentation_tools/organized_segmentation_tbb.h"
 #include "pcl_conversions/pcl_conversions.h"
+#include "sensor_msgs/msg/laser_scan.hpp"
+#include "sensor_msgs/msg/point_cloud2.hpp"
 #include "tf2_ros/transform_broadcaster.h"
 #include "tf2_ros/transform_listener.h"
-
-#include "sensor_msgs/msg/point_cloud2.hpp"
-#include "sensor_msgs/msg/laser_scan.hpp"
 
 template <typename PointT>
 class OmniMapperROS {
@@ -166,7 +165,8 @@ class OmniMapperROS {
       pointcloud_sub_;
   rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr laserScan_sub_;
 
-  rclcpp::Service<omnimapper_ros_msgs::srv::OutputMapTSDF>::SharedPtr generate_tsdf_srv_;
+  rclcpp::Service<omnimapper_ros_msgs::srv::OutputMapTSDF>::SharedPtr
+      generate_tsdf_srv_;
 
   // Mapper config
   bool use_planes_;

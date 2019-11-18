@@ -3,10 +3,10 @@
 #include <gtsam/geometry/Pose3.h>
 #include <gtsam/nonlinear/Symbol.h>
 #include <gtsam/slam/BetweenFactor.h>
-#include <laser_geometry/laser_geometry.hpp>
 #include <omnimapper/omnimapper_base.h>
 #include <omnimapper/trigger.h>
 
+#include <laser_geometry/laser_geometry.hpp>
 #include <memory>
 
 #include "omnimapper_ros/canonical_scan.h"

@@ -21,8 +21,8 @@
  */
 
 bool CheckMoveFarEnough(const geometry_msgs::msg::TransformStamped& last_pose,
-                        const geometry_msgs::msg::TransformStamped& curr_pose, double distance,
-                        double rot_thresh);
+                        const geometry_msgs::msg::TransformStamped& curr_pose,
+                        double distance, double rot_thresh);
 
 /*!
  * \brief Makes a gtsam::Pose2 out of a TF stamped transform
@@ -45,8 +45,9 @@ gtsam::Pose3 GetPose(const geometry_msgs::msg::TransformStamped& transform);
  *measurement for the Pose2Factor
  */
 
-gtsam::Pose3 GetRelativePose(const geometry_msgs::msg::TransformStamped& last_pose,
-                             const geometry_msgs::msg::TransformStamped& curr_pose);
+gtsam::Pose3 GetRelativePose(
+    const geometry_msgs::msg::TransformStamped& last_pose,
+    const geometry_msgs::msg::TransformStamped& curr_pose);
 
 /*!
  *\brief   Takes an angle and wraps it to the range -M_PI:M_PI
