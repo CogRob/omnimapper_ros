@@ -4,7 +4,7 @@
 #include <omnimapper/time.h>
 
 #include "omnimapper_ros/csm_math_functions.h"
-#include "omnimapper_ros/ros2_utils.h"
+#include "omnimapper_ros/ros_time_utils.h"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 
 gtsam::Pose3 doCSM_impl(const sensor_msgs::msg::LaserScan& from_scan,
@@ -127,7 +127,7 @@ CanonicalScanMatcherPlugin<LScanT>::CanonicalScanMatcherPlugin(
       paused_(false),
       count_(0),
       trigger_(new omnimapper::TriggerAlways()),
-      triggered_time_(RosTimeToBoost(ros_node_->now())) {
+      triggered_time_(rostime2ptime(ros_node_->now())) {
   seq_canonical_scan_.initParams();
   lc_canonical_scan_.initParams();
   have_new_lscan_ = false;
@@ -154,7 +154,7 @@ void CanonicalScanMatcherPlugin<LScanT>::laserScanCallback(
     std::cout << "CSMPlugin: laser callback: " << ros_node_->now().seconds()
               << std::endl;
 
-  Time measurement_time = RosTimeToBoost(lscan->header.stamp);
+  Time measurement_time = rostime2ptime(lscan->header.stamp);
   bool use_measurement = (*trigger_)(measurement_time);
   if (!use_measurement) return;
 
@@ -195,7 +195,7 @@ bool CanonicalScanMatcherPlugin<LScanT>::spinOnce() {
 
   gtsam::Symbol current_sym;
   boost::posix_time::ptime current_time =
-      RosTimeToBoost(current_lscan->header.stamp);
+      rostime2ptime(current_lscan->header.stamp);
 
   mapper_->getPoseSymbolAtTime(current_time, current_sym);
 

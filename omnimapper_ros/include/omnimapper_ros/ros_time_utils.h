@@ -10,13 +10,13 @@
 #include "rclcpp/rclcpp.hpp"
 
 namespace omnimapper {
-/** Converts a ros Time to Boost posix time.  Just syntactic sugar to match our
- * other function. */
-boost::posix_time::ptime rostime2ptime(rclcpp::Time r_time);
+
+/** Converts a ros Time to Boost posix time. */
+const boost::posix_time::ptime rostime2ptime(const rclcpp::Time& r_time);
 
 /** Converts a ptime to a rclcpp::Time.  This can be done by computing the total
  * nanoseconds since epoch. */
-rclcpp::Time ptime2rostime(boost::posix_time::ptime p_time);
+const rclcpp::Time ptime2rostime(const boost::posix_time::ptime& p_time);
 
 /** \brief An omnimapper compatible time functor, which will return the current
  * ros time. */

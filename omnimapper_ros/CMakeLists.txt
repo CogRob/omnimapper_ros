@@ -67,6 +67,8 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
+add_library(ros_time_utils src/ros_time_utils.cpp)
+
 add_library(canonical_scan src/canonical_scan.cpp)
 
 add_library(try_headers src/try_headers.cpp)
