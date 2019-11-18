@@ -75,7 +75,7 @@ class OmniMapperROS {
 
  public:
   // Constructor
-  OmniMapperROS(std::shared_ptr<rclcpp::Node> ros_node);
+  explicit OmniMapperROS(std::shared_ptr<rclcpp::Node> ros_node);
 
   // Load (or reload) ROS Parameters
   void loadROSParams();
