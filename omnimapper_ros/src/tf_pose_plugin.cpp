@@ -10,8 +10,8 @@ TFPosePlugin::TFPosePlugin(omnimapper::OmniMapperBase* mapper,
       tf_buffer_(tf_buffer),
       odom_frame_name_("/odom"),
       base_frame_name_("/camera_depth_optical_frame"),
-      translation_noise_(1.0),
       rotation_noise_(1.0),
+      translation_noise_(1.0),
       debug_(false) {}
 
 gtsam::BetweenFactor<gtsam::Pose3>::shared_ptr TFPosePlugin::addRelativePose(
