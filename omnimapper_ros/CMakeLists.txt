@@ -19,6 +19,7 @@ endif()
 find_package(ament_cmake REQUIRED)
 
 find_package(rclcpp REQUIRED)
+find_package(omnimapper_ros_msgs REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(visualization_msgs REQUIRED)
@@ -26,8 +27,6 @@ find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(laser_geometry REQUIRED)
 find_package(pcl_conversions REQUIRED)
-find_package(rosidl_default_generators REQUIRED)
-find_package(Python3 COMPONENTS Development)
 
 find_package(GTSAM REQUIRED)
 set(EIGEN_INCLUDE_DIRS ${GTSAM_DIR}/../../../include/gtsam/3rdparty/Eigen)
@@ -37,11 +36,10 @@ find_package(Boost REQUIRED COMPONENTS system)
 find_package(PCL 1.7 REQUIRED)
 link_directories(${PCL_LIBRARY_DIRS})
 
-include_directories(BEFORE ${Python3_INCLUDE_DIRS})
-
 # Set include directories
 include_directories(
   include
+  ${omnimapper_ros_msgs_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
   ${PCL_INCLUDE_DIRS}
   ${EIGEN_INCLUDE_DIRS}
@@ -56,13 +54,6 @@ include_directories(
   ${pcl_conversions_INCLUDE_DIR}
 )
 
-rosidl_generate_interfaces(omnimapper_ros_srv
-  "srv/OutputMapTSDF.srv"
-  "srv/PublishModel.srv"
-  "srv/VisualizeFullCloud.srv"
-  "srv/WriteTrajectoryFile.srv")
-ament_export_dependencies(rosidl_default_runtime)
-
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights
@@ -76,7 +67,7 @@ endif()
 
 add_library(try_headers src/try_headers.cpp)
 ament_target_dependencies(
-  try_headers
+  try_headers omnimapper_ros_msgs
   ${Boost_LIBRARIES} ${PCL_LIBRARIES} rclcpp pcl_conversions
   omnimapper gtsam organized_segmentation_tools tcmalloc profiler tbb csm)
 

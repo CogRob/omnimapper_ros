@@ -40,7 +40,6 @@
 #include <omnimapper/icp_plugin.h>
 #include <omnimapper/omnimapper_base.h>
 #include <pcl/common/time.h>
-#include <pcl/io/openni_grabber.h>
 #include <pcl/io/pcd_grabber.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>

@@ -37,6 +37,7 @@
  */
 
 #include <omnimapper_ros/omnimapper_ros.h>
+#include <pcl/io/openni_grabber.h>
 
 template <typename PointT>
 OmniMapperROS<PointT>::OmniMapperROS(ros::NodeHandle nh)

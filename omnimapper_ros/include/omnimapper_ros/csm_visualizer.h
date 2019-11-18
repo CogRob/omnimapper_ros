@@ -42,7 +42,7 @@
 
 #include "geometry_msgs/msg/point.hpp"
 #include "omnimapper_ros/canonical_scan_matcher_plugin.h"
-#include "omnimapper_ros/srv/visualize_full_cloud.hpp"
+#include "omnimapper_ros_msgs/srv/visualize_full_cloud.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "tf_conversions/tf_eigen.h"
 #include "visualization_msgs/msg/marker_array.hpp"
@@ -59,8 +59,8 @@ class CSMVisualizerRViz : public omnimapper::OutputPlugin {
           csm_plugin) {
     csm_plugin_ = csm_plugin;
   }
-  bool drawCSMMap(omnimapper_ros::srv::VisualizeFullCloud::Request& req,
-                  omnimapper_ros::srv::VisualizeFullCloud::Response& res);
+  bool drawCSMMap(omnimapper_ros_msgs::srv::VisualizeFullCloud::Request& req,
+                  omnimapper_ros_msgs::srv::VisualizeFullCloud::Response& res);
 
  protected:
   std::shared_ptr<rclcpp::Node> ros_node_;
@@ -74,7 +74,7 @@ class CSMVisualizerRViz : public omnimapper::OutputPlugin {
 
   rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr map_cloud_pub_;
 
-  rclcpp::Service<omnimapper_ros::srv::VisualizeFullCloud>::SharedPtr
+  rclcpp::Service<omnimapper_ros_msgs::srv::VisualizeFullCloud>::SharedPtr
       draw_csm_map_srv_;
 
   boost::shared_ptr<omnimapper::CanonicalScanMatcherPlugin<LScanT> >
