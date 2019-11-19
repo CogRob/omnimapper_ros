@@ -278,9 +278,9 @@ void OmniMapperROS<PointT>::loadROSParams() {
                               false);
   ros_node_->get_parameter_or("use_no_motion", use_no_motion_, false);
   ros_node_->get_parameter_or("odom_frame_name", odom_frame_name_,
-                              std::string("/odom"));
+                              std::string("odom"));
   ros_node_->get_parameter_or("base_frame_name", base_frame_name_,
-                              std::string("/camera_depth_optical_frame"));
+                              std::string("camera_depth_optical_frame"));
   ros_node_->get_parameter_or("cloud_topic_name", cloud_topic_name_,
                               std::string("/throttled_points"));
   ros_node_->get_parameter_or("rgbd_frame_name", rgbd_frame_name_,
@@ -474,7 +474,7 @@ void OmniMapperROS<PointT>::publishMapToOdom() {
   const rclcpp::Time current_time_ros = omnimapper::ptime2rostime(current_time);
   const tf2::Transform current_pose_ros = omnimapper::pose3totf(current_pose);
   const tf2::Stamped<tf2::Transform> map_to_base(
-      current_pose_ros.inverse(), tf2_ros::fromMsg(current_time_ros), "/base");
+      current_pose_ros.inverse(), tf2_ros::fromMsg(current_time_ros), "base");
   const geometry_msgs::msg::TransformStamped map_to_base_msg =
       tf2::toMsg<tf2::Stamped<tf2::Transform>,
       geometry_msgs::msg::TransformStamped>(map_to_base);
@@ -497,7 +497,7 @@ void OmniMapperROS<PointT>::publishMapToOdom() {
     return;
   }
   tf2::Stamped<tf2::Transform> map_to_odom(
-      odom_to_map.inverse(), tf2_ros::fromMsg(ros_node_->now()), "/map");
+      odom_to_map.inverse(), tf2_ros::fromMsg(ros_node_->now()), "map");
   geometry_msgs::msg::TransformStamped map_to_odom_msg =
       tf2::toMsg<tf2::Stamped<tf2::Transform>,
                  geometry_msgs::msg::TransformStamped>(map_to_odom);
@@ -514,11 +514,11 @@ void OmniMapperROS<PointT>::publishCurrentPose() {
 
   tf2::Stamped<tf2::Transform> current_pose_ros(
       omnimapper::pose3totf(current_pose), tf2_ros::fromMsg(ros_node_->now()),
-      "/map");
+      "map");
   geometry_msgs::msg::TransformStamped current_pose_msg =
       tf2::toMsg<tf2::Stamped<tf2::Transform>,
                  geometry_msgs::msg::TransformStamped>(current_pose_ros);
-  current_pose_msg.child_frame_id = "/current_pose";
+  current_pose_msg.child_frame_id = "current_pose";
   tf_broadcaster_.sendTransform(current_pose_msg);
 }
 

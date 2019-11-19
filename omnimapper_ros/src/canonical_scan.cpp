@@ -41,7 +41,7 @@ void CanonicalScan::initParams() {
   }
 
   // **** What predictions are available to speed up the ICP?
-  // 1) imu - [theta] from imu yaw angle - /odom topic
+  // 1) imu - [theta] from imu yaw angle - odom topic
   // 2) odom - [x, y, theta] from wheel odometry - /imu topic
   // 3) alpha_beta - [x, y, theta] from simple tracking filter - no topic req.
   // If more than one is enabled, priority is imu > odom > alpha_beta

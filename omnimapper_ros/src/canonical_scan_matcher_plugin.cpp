@@ -117,7 +117,7 @@ CanonicalScanMatcherPlugin<LScanT>::CanonicalScanMatcherPlugin(
       leaf_size_(0.05f),
       score_threshold_(0.5),
       downsample_(true),
-      base_frame_name_(std::string("/base_link")),
+      base_frame_name_(std::string("base_link")),
       previous_sym_(gtsam::Symbol('x', 0)),
       previous2_sym_(gtsam::Symbol('x', 0)),
       previous3_sym_(gtsam::Symbol('x', 0)),
@@ -320,16 +320,16 @@ bool CanonicalScanMatcherPlugin<LScanT>::addConstraint(
   // debug
   if (debug_) {
     LaserScanPtr vis_scan1(new LScan(*scan1));
-    vis_scan1->header.frame_id = "/odom";
+    vis_scan1->header.frame_id = "odom";
     LaserScanPtr vis_scan2(new LScan(*scan2));
-    vis_scan2->header.frame_id = "/odom";
+    vis_scan2->header.frame_id = "odom";
     laser_scan_msg_pub1_->publish(*vis_scan1);
     laser_scan_msg_pub2_->publish(*vis_scan2);
     visualization_msgs::msg::MarkerArray marker_array;
 
     gtsam::Vector csm_quat = relative_pose.rotation().quaternion();
     visualization_msgs::msg::Marker csm_arrow;
-    csm_arrow.header.frame_id = "/odom";
+    csm_arrow.header.frame_id = "odom";
     csm_arrow.header.stamp = rclcpp::Time();
     csm_arrow.ns = "csm_estimate";
     csm_arrow.id = 0;
@@ -352,7 +352,7 @@ bool CanonicalScanMatcherPlugin<LScanT>::addConstraint(
     marker_array.markers.push_back(csm_arrow);
 
     visualization_msgs::msg::Marker csm_sphere;
-    csm_sphere.header.frame_id = "/odom";
+    csm_sphere.header.frame_id = "odom";
     csm_sphere.header.stamp = rclcpp::Time();
     csm_sphere.ns = "csm_pose";
     csm_sphere.id = 0;
@@ -372,7 +372,7 @@ bool CanonicalScanMatcherPlugin<LScanT>::addConstraint(
 
     gtsam::Vector odom_quat = initial_guess.rotation().quaternion();
     visualization_msgs::msg::Marker odom_arrow;
-    odom_arrow.header.frame_id = "/odom";
+    odom_arrow.header.frame_id = "odom";
     odom_arrow.header.stamp = rclcpp::Time();
     odom_arrow.ns = "odom_estimate";
     odom_arrow.id = 0;
@@ -395,7 +395,7 @@ bool CanonicalScanMatcherPlugin<LScanT>::addConstraint(
     marker_array.markers.push_back(odom_arrow);
 
     visualization_msgs::msg::Marker odom_sphere;
-    odom_sphere.header.frame_id = "/odom";
+    odom_sphere.header.frame_id = "odom";
     odom_sphere.header.stamp = rclcpp::Time();
     odom_sphere.ns = "odom_position";
     odom_sphere.id = 0;

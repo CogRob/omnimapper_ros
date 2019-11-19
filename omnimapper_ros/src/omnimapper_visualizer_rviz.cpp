@@ -203,7 +203,7 @@ void omnimapper::OmniMapperVisualizerRViz<PointT>::drawBBox(
 
   visualization_msgs::msg::MarkerArray marker_array;
   visualization_msgs::msg::Marker bbox_marker;
-  bbox_marker.header.frame_id = "/map";
+  bbox_marker.header.frame_id = "map";
   bbox_marker.header.stamp = ros_node_->now();
   bbox_marker.ns = "object_bboxes";
   bbox_marker.id = obj_idx;
@@ -305,7 +305,7 @@ void omnimapper::OmniMapperVisualizerRViz<PointT>::spinOnce() {
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr aggregate_cloud(
       new pcl::PointCloud<pcl::PointXYZRGB>());
   // CloudPtr aggregate_cloud (new Cloud ());
-  // aggregate_cloud->header.frame_id = "/map";
+  // aggregate_cloud->header.frame_id = "map";
   // aggregate_cloud->header.stamp = ros_node->now ();
 
   // Draw object cloud
@@ -313,11 +313,11 @@ void omnimapper::OmniMapperVisualizerRViz<PointT>::spinOnce() {
       aggregate_object_observation_cloud;  // (new
                                            // pcl::PointCloud<pcl::PointXYZRGB>
                                            // ());
-  // aggregate_object_observation_cloud.header.frame_id = "/map";
+  // aggregate_object_observation_cloud.header.frame_id = "map";
   // aggregate_object_observation_cloud.header.stamp = ros_node->now ();
 
   geometry_msgs::msg::PoseArray pose_array;
-  pose_array.header.frame_id = "/map";
+  pose_array.header.frame_id = "map";
   pose_array.header.stamp = ros_node_->now();
 
   unsigned char red[6] = {255, 0, 0, 255, 255, 0};
@@ -432,7 +432,7 @@ void omnimapper::OmniMapperVisualizerRViz<PointT>::spinOnce() {
   if (draw_pose_graph_) {
     visualization_msgs::msg::MarkerArray marker_array;
     visualization_msgs::msg::Marker mapper_graph;
-    mapper_graph.header.frame_id = "/map";
+    mapper_graph.header.frame_id = "map";
     mapper_graph.header.stamp = rclcpp::Time();
     mapper_graph.ns = "error_lines";
     mapper_graph.id = 0;
@@ -445,7 +445,7 @@ void omnimapper::OmniMapperVisualizerRViz<PointT>::spinOnce() {
     mapper_graph.scale.x = 0.01;
 
     visualization_msgs::msg::Marker object_graph;
-    object_graph.header.frame_id = "/map";
+    object_graph.header.frame_id = "map";
     object_graph.header.stamp = rclcpp::Time();
     object_graph.ns = "object_lines";
     object_graph.id = 0;
@@ -458,7 +458,7 @@ void omnimapper::OmniMapperVisualizerRViz<PointT>::spinOnce() {
     object_graph.scale.x = 0.01;
 
     visualization_msgs::msg::Marker object_object_graph;
-    object_object_graph.header.frame_id = "/map";
+    object_object_graph.header.frame_id = "map";
     object_object_graph.header.stamp = rclcpp::Time();
     object_object_graph.ns = "object_object_lines";
     object_object_graph.id = 0;
@@ -575,7 +575,7 @@ void omnimapper::OmniMapperVisualizerRViz<PointT>::spinOnce() {
         btm.getRotation(btq);
 
         visualization_msgs::msg::Marker pose_cov_marker;
-        pose_cov_marker.header.frame_id = "/map";
+        pose_cov_marker.header.frame_id = "map";
         pose_cov_marker.header.stamp = ros_node_->now();
         pose_cov_marker.type = visualization_msgs::msg::Marker::SPHERE;
         pose_cov_marker.action = visualization_msgs::msg::Marker::ADD;
@@ -622,7 +622,7 @@ void omnimapper::OmniMapperVisualizerRViz<PointT>::spinOnce() {
         btm.getRotation(btq);
 
         visualization_msgs::msg::Marker pose_cov_marker;
-        pose_cov_marker.header.frame_id = "/map";
+        pose_cov_marker.header.frame_id = "map";
         pose_cov_marker.header.stamp = ros_node_->now();
         pose_cov_marker.type = visualization_msgs::msg::Marker::SPHERE;
         pose_cov_marker.action = visualization_msgs::msg::Marker::ADD;
@@ -738,7 +738,7 @@ void omnimapper::OmniMapperVisualizerRViz<PointT>::spinOnce() {
 
       // Draw the normal
       visualization_msgs::msg::Marker normal_marker;
-      normal_marker.header.frame_id = "/map";
+      normal_marker.header.frame_id = "map";
       normal_marker.header.stamp = rclcpp::Time();
       normal_marker.ns = "planar_normals";
       normal_marker.id = ++id;//key_value.key.index ();
@@ -765,7 +765,7 @@ void omnimapper::OmniMapperVisualizerRViz<PointT>::spinOnce() {
 
 
     //marker_array.header.stamp = ros_node_->now ();
-    //marker_array.header.frame_id = "/odom";
+    //marker_array.header.frame_id = "odom";
     marker_array_pub_->publish(marker_array);
 
     if (plane_boundary_cloud->points.size () > 0)
@@ -773,7 +773,7 @@ void omnimapper::OmniMapperVisualizerRViz<PointT>::spinOnce() {
       sensor_msgs::msg::PointCloud2 cloud_msg;
       pcl::toROSMsg (*plane_boundary_cloud, cloud_msg);
       //pcl_conversions::moveFromPCL (*plane_boundary_cloud, cloud_msg);
-      cloud_msg.header.frame_id = "/map";
+      cloud_msg.header.frame_id = "map";
       cloud_msg.header.stamp = ros_node_->now ();
       planar_boundary_pub_->publish(cloud_msg);
     }
@@ -824,7 +824,7 @@ void omnimapper::OmniMapperVisualizerRViz<PointT>::spinOnce() {
 
       // Draw the normal
       visualization_msgs::msg::Marker normal_marker;
-      normal_marker.header.frame_id = "/map";
+      normal_marker.header.frame_id = "map";
       normal_marker.header.stamp = rclcpp::Time();
       normal_marker.ns = "planar_normals";
       normal_marker.id = ++id;//key_value.key.index ();
@@ -851,7 +851,7 @@ void omnimapper::OmniMapperVisualizerRViz<PointT>::spinOnce() {
 
 
     //marker_array.header.stamp = ros_node_->now ();
-    //marker_array.header.frame_id = "/odom";
+    //marker_array.header.frame_id = "odom";
     marker_array_pub_->publish(marker_array);
 
     if (plane_boundary_cloud->points.size () > 0)
@@ -859,7 +859,7 @@ void omnimapper::OmniMapperVisualizerRViz<PointT>::spinOnce() {
       sensor_msgs::msg::PointCloud2 cloud_msg;
       pcl::toROSMsg (*plane_boundary_cloud, cloud_msg);
       //pcl_conversions::moveFromPCL (*plane_boundary_cloud, cloud_msg);
-      cloud_msg.header.frame_id = "/map";
+      cloud_msg.header.frame_id = "map";
       cloud_msg.header.stamp = ros_node_->now ();
       planar_boundary_pub_->publish(cloud_msg);
     }
@@ -891,7 +891,7 @@ void omnimapper::OmniMapperVisualizerRViz<PointT>::planarRegionCallback(
     sensor_msgs::msg::PointCloud2 cloud_msg;
     pcl::toROSMsg(aggregate_cloud, cloud_msg);
     // pcl_conversions::moveFromPCL (aggregate_cloud, cloud_msg);
-    cloud_msg.header.frame_id = "/camera_rgb_optical_frame";
+    cloud_msg.header.frame_id = "camera_rgb_optical_frame";
     cloud_msg.header.stamp = ptime2rostime(t);
     segmented_plane_pub_->publish(cloud_msg);
   }
@@ -971,7 +971,7 @@ void omnimapper::OmniMapperVisualizerRViz<PointT>::clusterCloudCallback(
   sensor_msgs::msg::PointCloud2 cloud_msg;
   pcl::toROSMsg(aggregate_cloud, cloud_msg);
   // moveFromPCL (aggregate_cloud, cloud_msg);
-  cloud_msg.header.frame_id = "/camera_rgb_optical_frame";
+  cloud_msg.header.frame_id = "camera_rgb_optical_frame";
   cloud_msg.header.stamp = ptime2rostime(t);
   segmented_clusters_pub_->publish(cloud_msg);
 }
@@ -1015,7 +1015,7 @@ gtsam::Symbol>(it->second.clusters_.size(), sym));
 
   sensor_msgs::msg::PointCloud2 cloud_msg;
   pcl::toROSMsg(aggregate_cloud, cloud_msg);
-  cloud_msg.header.frame_id = "/map"; ///camera_rgb_optical_frame";
+  cloud_msg.header.frame_id = "map"; ///camera_rgb_optical_frame";
   cloud_msg.header.stamp = ros_node_->now ();
   object_modeled_pub_->publish(cloud_msg);
 
@@ -1024,7 +1024,7 @@ gtsam::Symbol>(it->second.clusters_.size(), sym));
   view_center.print("[rviz] view center");
 
   visualization_msgs::msg::Marker view_marker;
-  view_marker.header.frame_id = "/map";
+  view_marker.header.frame_id = "map";
   view_marker.header.stamp = ros_node_->now ();
   view_marker.ns = "camera_view";
   view_marker.id = 0;
@@ -1212,7 +1212,7 @@ bool omnimapper::OmniMapperVisualizerRViz<PointT>::publishModel(
 
   // Draw the intersection
   visualization_msgs::msg::Marker intersect_marker;
-  intersect_marker.header.frame_id = "/oculus_optical";
+  intersect_marker.header.frame_id = "oculus_optical";
   intersect_marker.header.stamp = rclcpp::Time();
   intersect_marker.ns = "intersection";
   // intersect_marker.mesh_resource =
@@ -1241,7 +1241,7 @@ bool omnimapper::OmniMapperVisualizerRViz<PointT>::publishModel(
 
   // Draw the mesh
   visualization_msgs::msg::Marker mesh_marker;
-  mesh_marker.header.frame_id = "/oculus_optical";
+  mesh_marker.header.frame_id = "oculus_optical";
   mesh_marker.header.stamp = rclcpp::Time();
   mesh_marker.ns = "mesh";
   mesh_marker.mesh_resource = "package://omnimapper_ros/mesh/r2_small.dae";

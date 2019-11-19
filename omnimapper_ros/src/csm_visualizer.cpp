@@ -83,12 +83,12 @@ void omnimapper::CSMVisualizerRViz<LScanT>::update(
   gtsam::NonlinearFactorGraph current_graph = *vis_graph;
 
   geometry_msgs::msg::PoseArray pose_array;
-  pose_array.header.frame_id = "/map";
+  pose_array.header.frame_id = "map";
   pose_array.header.stamp = ros_node_->now();
 
   pcl::PointCloud<pcl::PointXYZ>::Ptr aggregate_cloud(
       new pcl::PointCloud<pcl::PointXYZ>());
-  aggregate_cloud->header.frame_id = "/map";
+  aggregate_cloud->header.frame_id = "map";
   // aggregate_cloud->header.stamp = ros_node_->now();
 
   gtsam::Values::ConstFiltered<gtsam::Pose3> pose_filtered =
@@ -145,7 +145,7 @@ void omnimapper::CSMVisualizerRViz<LScanT>::update(
   // Draw the graph
   visualization_msgs::msg::MarkerArray marker_array;
   visualization_msgs::msg::Marker mapper_graph;
-  mapper_graph.header.frame_id = "/map";
+  mapper_graph.header.frame_id = "map";
   mapper_graph.header.stamp = rclcpp::Time();
   mapper_graph.ns = "error_lines";
   mapper_graph.id = 0;
