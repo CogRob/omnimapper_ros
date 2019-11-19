@@ -3,7 +3,10 @@
 
 int main(int argc, char** argv) {
   rclcpp::init(argc, argv);
-  auto g_node = rclcpp::Node::make_shared("OmniMapperROSNode");
+  rclcpp::NodeOptions node_options;
+  node_options.automatically_declare_parameters_from_overrides(true);
+
+  auto g_node = rclcpp::Node::make_shared("OmniMapperROSNode", node_options);
 
   OmniMapperROS<pcl::PointXYZRGBA> omnimapper(g_node);
 
