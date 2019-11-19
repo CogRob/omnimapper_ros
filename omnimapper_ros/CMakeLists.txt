@@ -24,7 +24,7 @@ find_package(tf2 REQUIRED)
 find_package(tf2_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(tf2_eigen REQUIRED)
-find_package(tf2_kdl REQUIRED)
+find_package(orocos_kdl REQUIRED)
 find_package(visualization_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
@@ -127,13 +127,15 @@ ament_target_dependencies(omnimapper_ros_node
   tf2_msgs
   tf2_ros
   tf2_eigen
-  tf2_kdl
   tf2_geometry_msgs
   ${Boost_LIBRARIES}
   ${PCL_LIBRARIES}
 )
 
-target_link_libraries(omnimapper_ros_node omnimapper_ros gtsam omnimapper organized_segmentation_tools ${Boost_LIBRARIES} ${PCL_LIBRARIES} csm gsl)
+target_link_libraries(
+  omnimapper_ros_node
+  omnimapper_ros gtsam omnimapper organized_segmentation_tools
+  ${Boost_LIBRARIES} ${PCL_LIBRARIES} ${orocos_kdl_LIBRARIES} csm gsl)
 
 install(TARGETS
   omnimapper_ros omnimapper_ros_node
