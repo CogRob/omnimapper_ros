@@ -470,16 +470,25 @@ void OmniMapperROS<PointT>::publishMapToOdom() {
   gtsam::Pose3 current_pose;
   boost::posix_time::ptime current_time;
   omb_.getLatestPose(current_pose, current_time);
-  rclcpp::Time current_time_ros = omnimapper::ptime2rostime(current_time);
-  tf2::Transform current_pose_ros = omnimapper::pose3totf(current_pose);
 
+  const rclcpp::Time current_time_ros = omnimapper::ptime2rostime(current_time);
+  const tf2::Transform current_pose_ros = omnimapper::pose3totf(current_pose);
+  const tf2::Stamped<tf2::Transform> map_to_base(
+      current_pose_ros.inverse(), tf2_ros::fromMsg(current_time_ros), "/base");
+  const geometry_msgs::msg::TransformStamped map_to_base_msg =
+      tf2::toMsg<tf2::Stamped<tf2::Transform>,
+      geometry_msgs::msg::TransformStamped>(map_to_base);
+
+  geometry_msgs::msg::TransformStamped odom_to_map_msg;
   tf2::Transform odom_to_map;
+
   try {
     const geometry_msgs::msg::TransformStamped base_to_odom =
         tf_buffer_->lookupTransform(odom_frame_name_, base_frame_name_,
                                     tf2_ros::fromMsg(current_time_ros),
                                     tf2::durationFromSec(0.05));
-    tf2::doTransform(current_pose_ros.inverse(), odom_to_map, base_to_odom);
+    tf2::doTransform(map_to_base_msg, odom_to_map_msg, base_to_odom);
+    tf2::fromMsg(odom_to_map_msg.transform, odom_to_map);
   } catch (tf2::TransformException e) {
     RCLCPP_ERROR(ros_node_->get_logger(),
                  "OmniMapperROS: Error: could not immediately get odom to base "
