@@ -28,6 +28,7 @@ find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(laser_geometry REQUIRED)
 find_package(pcl_conversions REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
 
 find_package(GTSAM REQUIRED)
 set(EIGEN_INCLUDE_DIRS ${GTSAM_DIR}/../../../include/gtsam/3rdparty/Eigen)
@@ -58,6 +59,7 @@ include_directories(
   ${sensor_msgs_INCLUDE_DIR}
   ${laser_geometry_INCLUDE_DIR}
   ${pcl_conversions_INCLUDE_DIR}
+  ${tf2_geometry_msgs_INCLUDE_DIR}
 )
 
 if(BUILD_TESTING)

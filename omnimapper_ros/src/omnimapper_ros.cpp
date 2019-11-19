@@ -36,26 +36,28 @@
  *
  */
 
-#include <omnimapper_ros/omnimapper_ros.h>
+#include "omnimapper_ros/omnimapper_ros.h"
+
+#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 
 template <typename PointT>
 OmniMapperROS<PointT>::OmniMapperROS(std::shared_ptr<rclcpp::Node> ros_node)
     : ros_node_(ros_node),
       tf_buffer_(std::make_shared<tf2_ros::Buffer>(ros_node->get_clock(),
                                                    tf2::durationFromSec(500))),
-      tf_listener_(tf_buffer_),
+      tf_listener_(*tf_buffer_),
       tf_broadcaster_(ros_node_),
       omb_(),
-      tf_plugin_(&omb_),
+      tf_plugin_(&omb_, ros_node_, tf_buffer_),
       no_motion_plugin_(&omb_),
       icp_plugin_(&omb_),
       edge_icp_plugin_(&omb_),
-      csm_plugin_(&omb_),
-      vis_plugin_(&omb_),
-      csm_vis_plugin_(&omb_),
+      csm_plugin_(&omb_, ros_node_, tf_buffer_),
+      vis_plugin_(&omb_, ros_node_, tf_buffer_),
+      csm_vis_plugin_(&omb_, ros_node_, tf_buffer_),
       organized_segmentation_() {
   if (debug_)
-    RCLCPP_INFO(ros_node_->get_logger,
+    RCLCPP_INFO(ros_node_->get_logger(),
                 "OmniMapperROS: Constructing... Loading ROS Params...");
   loadROSParams();
 
@@ -76,20 +78,20 @@ OmniMapperROS<PointT>::OmniMapperROS(std::shared_ptr<rclcpp::Node> ros_node)
   // Optionally get initial pose from TF
   if (init_pose_from_tf_) {
     bool got_tf = false;
-    tf::StampedTransform init_transform;
+    geometry_msgs::msg::TransformStamped init_transform;
 
     while (!got_tf) {
       got_tf = true;
       try {
-        RCLCPP_INFO(ros_node_->get_logger,
+        RCLCPP_INFO(ros_node_->get_logger(),
                     "Waiting for initial pose from %s to %s",
                     odom_frame_name_.c_str(), base_frame_name_.c_str());
         rclcpp::Time current_time = ros_node_->now();
         init_transform = tf_buffer_->lookupTransform(
             odom_frame_name_, base_frame_name_, tf2_ros::fromMsg(current_time),
             tf2::durationFromSec(1.0));
-      } catch (tf::TransformException ex) {
-        RCLCPP_INFO(ros_node_->get_logger, "Transform not yet available!");
+      } catch (tf2::TransformException ex) {
+        RCLCPP_INFO(ros_node_->get_logger(), "Transform not yet available!");
         got_tf = false;
       }
     }
@@ -120,8 +122,8 @@ OmniMapperROS<PointT>::OmniMapperROS(std::shared_ptr<rclcpp::Node> ros_node)
 
   // Set up a sensor_to_base functor, for plugins to use
   omnimapper::GetTransformFunctorPtr rgbd_to_base_ptr(
-      new omnimapper::GetTransformFunctorTF(rgbd_frame_name_,
-                                            base_frame_name_));
+      new omnimapper::GetTransformFunctorTF(rgbd_frame_name_, base_frame_name_,
+                                            ros_node_, tf_buffer_));
   // Optionally disable this, if we don't have TF available
   if (!use_rgbd_sensor_base_tf_functor_) {
     rgbd_to_base_ptr = omnimapper::GetTransformFunctorPtr(
@@ -257,7 +259,8 @@ OmniMapperROS<PointT>::OmniMapperROS(std::shared_ptr<rclcpp::Node> ros_node)
   if (use_organized_segmentation_) organized_segmentation_.spin();
 
   if (debug_)
-    RCLCPP_INFO(ros_node_->get_logger, "OmniMapperROS: Constructor complete.");
+    RCLCPP_INFO(ros_node_->get_logger(),
+                "OmniMapperROS: Constructor complete.");
 }
 
 template <typename PointT>
@@ -384,7 +387,8 @@ void OmniMapperROS<PointT>::loadROSParams() {
 template <typename PointT>
 void OmniMapperROS<PointT>::cloudCallback(
     const sensor_msgs::msg::PointCloud2::SharedPtr msg) {
-  if (debug_) RCLCPP_INFO(ros_node_->get_logger, "OmniMapperROS got a cloud.");
+  if (debug_)
+    RCLCPP_INFO(ros_node_->get_logger(), "OmniMapperROS got a cloud.");
   double start_cb = pcl::getTime();
   double start_copy = pcl::getTime();
   CloudPtr cloud(new Cloud());
@@ -450,7 +454,8 @@ void OmniMapperROS<PointT>::cloudCallback(
 template <typename PointT>
 void OmniMapperROS<PointT>::laserScanCallback(
     const sensor_msgs::msg::LaserScan::SharedPtr msg) {
-  if (debug_) RCLCPP_INFO(ros_node_->get_logger, "OmniMapperROS: got a scan.");
+  if (debug_)
+    RCLCPP_INFO(ros_node_->get_logger(), "OmniMapperROS: got a scan.");
 
   gtsam::Symbol sym;
 
@@ -468,14 +473,14 @@ void OmniMapperROS<PointT>::publishMapToOdom() {
   rclcpp::Time current_time_ros = omnimapper::ptime2rostime(current_time);
   tf2::Transform current_pose_ros = omnimapper::pose3totf(current_pose);
 
-  tf2::Stamped<tf2::Pose> odom_to_map;
+  tf2::Transform odom_to_map;
   try {
     const geometry_msgs::msg::TransformStamped base_to_odom =
-        tf_buffer_.lookupTransform(odom_frame_name_, base_frame_name_,
-                                   tf2_ros::fromMsg(current_time_ros),
-                                   tf2::durationFromSec(0.05));
+        tf_buffer_->lookupTransform(odom_frame_name_, base_frame_name_,
+                                    tf2_ros::fromMsg(current_time_ros),
+                                    tf2::durationFromSec(0.05));
     tf2::doTransform(current_pose_ros.inverse(), odom_to_map, base_to_odom);
-  } catch (tf::TransformException e) {
+  } catch (tf2::TransformException e) {
     RCLCPP_ERROR(ros_node_->get_logger(),
                  "OmniMapperROS: Error: could not immediately get odom to base "
                  "transform\n");
@@ -483,9 +488,10 @@ void OmniMapperROS<PointT>::publishMapToOdom() {
     return;
   }
   tf2::Stamped<tf2::Transform> map_to_odom(
-      odom_to_map.inverse(), tf2_ros::toMsg(ros_node_->now()), "/map");
+      odom_to_map.inverse(), tf2_ros::fromMsg(ros_node_->now()), "/map");
   geometry_msgs::msg::TransformStamped map_to_odom_msg =
-      tf2::toMsg(map_to_odom);
+      tf2::toMsg<tf2::Stamped<tf2::Transform>,
+                 geometry_msgs::msg::TransformStamped>(map_to_odom);
   map_to_odom_msg.child_frame_id = odom_frame_name_;
   tf_broadcaster_.sendTransform(map_to_odom_msg);
 }
@@ -498,12 +504,13 @@ void OmniMapperROS<PointT>::publishCurrentPose() {
   rclcpp::Time current_time_ros = omnimapper::ptime2rostime(current_time);
 
   tf2::Stamped<tf2::Transform> current_pose_ros(
-      omnimapper::pose3totf(current_pose), tf2_ros::toMsg(ros_node_->now()),
+      omnimapper::pose3totf(current_pose), tf2_ros::fromMsg(ros_node_->now()),
       "/map");
   geometry_msgs::msg::TransformStamped current_pose_msg =
-      tf2::toMsg(current_pose_ros);
-  map_to_odom_msg.child_frame_id = "/current_pose";
-  tf_broadcaster_.sendTransform(map_to_odom_msg);
+      tf2::toMsg<tf2::Stamped<tf2::Transform>,
+                 geometry_msgs::msg::TransformStamped>(current_pose_ros);
+  current_pose_msg.child_frame_id = "/current_pose";
+  tf_broadcaster_.sendTransform(current_pose_msg);
 }
 
 template <typename PointT>
