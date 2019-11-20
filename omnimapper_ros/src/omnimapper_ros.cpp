@@ -387,12 +387,14 @@ void OmniMapperROS<PointT>::loadROSParams() {
 template <typename PointT>
 void OmniMapperROS<PointT>::cloudCallback(
     const sensor_msgs::msg::PointCloud2::SharedPtr msg) {
+  static uint32_t seq = 0;  // ROS2 is missing a seq field, we emulate this.
   if (debug_)
     RCLCPP_INFO(ros_node_->get_logger(), "OmniMapperROS got a cloud.");
   double start_cb = pcl::getTime();
   double start_copy = pcl::getTime();
   CloudPtr cloud(new Cloud());
   pcl::fromROSMsg<PointT>(*msg, *cloud);
+  cloud->header.seq = seq++;  // Emulate the seq field.
   double end_copy = pcl::getTime();
   omnimapper::Time cloud_stamp = omnimapper::stamp2ptime(cloud->header.stamp);
   if (debug_) {
