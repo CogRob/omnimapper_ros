@@ -198,7 +198,7 @@ OmniMapperROS<PointT>::OmniMapperROS(std::shared_ptr<rclcpp::Node> ros_node)
     laserScan_sub_ =
         ros_node_->create_subscription<sensor_msgs::msg::LaserScan>(
             "/scan", 1,
-            [this](const sensor_msgs::msg::LaserScan::SharedPtr msg) {
+            [this](sensor_msgs::msg::LaserScan::ConstSharedPtr msg) {
               this->laserScanCallback(msg);
             });
 
@@ -230,7 +230,7 @@ OmniMapperROS<PointT>::OmniMapperROS(std::shared_ptr<rclcpp::Node> ros_node)
   pointcloud_sub_ =
       ros_node_->create_subscription<sensor_msgs::msg::PointCloud2>(
           cloud_topic_name_, 1,
-          [this](const sensor_msgs::msg::PointCloud2::SharedPtr msg) {
+          [this](sensor_msgs::msg::PointCloud2::ConstSharedPtr msg) {
             this->cloudCallback(msg);
           });
 
@@ -386,7 +386,7 @@ void OmniMapperROS<PointT>::loadROSParams() {
 
 template <typename PointT>
 void OmniMapperROS<PointT>::cloudCallback(
-    const sensor_msgs::msg::PointCloud2::SharedPtr msg) {
+    sensor_msgs::msg::PointCloud2::ConstSharedPtr msg) {
   static uint32_t seq = 0;  // ROS2 is missing a seq field, we emulate this.
   if (debug_)
     RCLCPP_INFO(ros_node_->get_logger(), "OmniMapperROS got a cloud.");
@@ -455,7 +455,7 @@ void OmniMapperROS<PointT>::cloudCallback(
 
 template <typename PointT>
 void OmniMapperROS<PointT>::laserScanCallback(
-    const sensor_msgs::msg::LaserScan::SharedPtr msg) {
+    sensor_msgs::msg::LaserScan::ConstSharedPtr msg) {
   if (debug_)
     RCLCPP_INFO(ros_node_->get_logger(), "OmniMapperROS: got a scan.");
 

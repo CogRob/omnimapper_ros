@@ -80,10 +80,10 @@ class OmniMapperROS {
   void loadROSParams();
 
   // Point Cloud Callback
-  void cloudCallback(const sensor_msgs::msg::PointCloud2::SharedPtr msg);
+  void cloudCallback(sensor_msgs::msg::PointCloud2::ConstSharedPtr msg);
 
   // Laser Scan Callback
-  void laserScanCallback(const sensor_msgs::msg::LaserScan::SharedPtr msg);
+  void laserScanCallback(sensor_msgs::msg::LaserScan::ConstSharedPtr msg);
 
   // Evaluation Timer Callback
   // void evalTimerCallback (const ros::TimerEvent& e);
