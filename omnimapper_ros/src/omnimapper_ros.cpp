@@ -477,7 +477,7 @@ void OmniMapperROS<PointT>::publishMapToOdom() {
       current_pose_ros.inverse(), tf2_ros::fromMsg(current_time_ros), "base");
   const geometry_msgs::msg::TransformStamped map_to_base_msg =
       tf2::toMsg<tf2::Stamped<tf2::Transform>,
-      geometry_msgs::msg::TransformStamped>(map_to_base);
+                 geometry_msgs::msg::TransformStamped>(map_to_base);
 
   geometry_msgs::msg::TransformStamped odom_to_map_msg;
   tf2::Transform odom_to_map;
