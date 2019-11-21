@@ -200,7 +200,8 @@ OmniMapperROS<PointT>::OmniMapperROS(std::shared_ptr<rclcpp::Node> ros_node)
             "/scan", 1,
             [this](sensor_msgs::msg::LaserScan::ConstSharedPtr msg) {
               this->laserScanCallback(msg);
-            });
+            },
+            rclcpp::SensorDataQoS());
 
     // Make a Trigger Functor: TODO: param this
     omnimapper::TriggerFunctorPtr trigger_functor_ptr(
@@ -232,7 +233,8 @@ OmniMapperROS<PointT>::OmniMapperROS(std::shared_ptr<rclcpp::Node> ros_node)
           cloud_topic_name_, 1,
           [this](sensor_msgs::msg::PointCloud2::ConstSharedPtr msg) {
             this->cloudCallback(msg);
-          });
+          },
+          rclcpp::SensorDataQoS());
 
   // Install the visualizer
   if (use_rviz_plugin_) {
