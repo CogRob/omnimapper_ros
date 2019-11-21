@@ -175,7 +175,7 @@ OmniMapperROS<PointT>::OmniMapperROS(std::shared_ptr<rclcpp::Node> ros_node)
   if (ar_mode_) {
     boost::function<void(
         std::vector<pcl::PlanarRegion<PointT>,
-                    Eigen::aligned_allocator<pcl::PlanarRegion<PointT> > >,
+                    Eigen::aligned_allocator<pcl::PlanarRegion<PointT>>>,
         omnimapper::Time)>
         plane_vis_cb = boost::bind(
             &omnimapper::OmniMapperVisualizerRViz<PointT>::planarRegionCallback,
@@ -209,7 +209,7 @@ OmniMapperROS<PointT>::OmniMapperROS(std::shared_ptr<rclcpp::Node> ros_node)
     csm_plugin_.setTriggerFunctor(trigger_functor_ptr);
 
     boost::shared_ptr<
-        omnimapper::CanonicalScanMatcherPlugin<sensor_msgs::msg::LaserScan> >
+        omnimapper::CanonicalScanMatcherPlugin<sensor_msgs::msg::LaserScan>>
         csm_ptr(&csm_plugin_);
     csm_vis_plugin_.setCSMPlugin(csm_ptr);
 

@@ -85,8 +85,7 @@ class OmniMapperVisualizerRViz : public omnimapper::OutputPlugin {
                           const LabelCloudConstPtr& labels);
   void clusterCloudCallback(std::vector<CloudPtr> clusters, omnimapper::Time t,
                             boost::optional<std::vector<pcl::PointIndices> >);
-  void setICPPlugin(
-      omnimapper::ICPPoseMeasurementPlugin<PointT>* icp_plugin) {
+  void setICPPlugin(omnimapper::ICPPoseMeasurementPlugin<PointT>* icp_plugin) {
     icp_plugin_ = icp_plugin;
   }
   bool drawICPCloudsCallback(
