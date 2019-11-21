@@ -197,11 +197,10 @@ OmniMapperROS<PointT>::OmniMapperROS(std::shared_ptr<rclcpp::Node> ros_node)
     // Subscribe to laser scan
     laserScan_sub_ =
         ros_node_->create_subscription<sensor_msgs::msg::LaserScan>(
-            "/scan", 1,
+            "/scan", rclcpp::SensorDataQoS(),
             [this](sensor_msgs::msg::LaserScan::ConstSharedPtr msg) {
               this->laserScanCallback(msg);
-            },
-            rclcpp::SensorDataQoS());
+            });
 
     // Make a Trigger Functor: TODO: param this
     omnimapper::TriggerFunctorPtr trigger_functor_ptr(
@@ -228,11 +227,10 @@ OmniMapperROS<PointT>::OmniMapperROS(std::shared_ptr<rclcpp::Node> ros_node)
   // Subscribe to Point Clouds
   pointcloud_sub_ =
       ros_node_->create_subscription<sensor_msgs::msg::PointCloud2>(
-          cloud_topic_name_, 1,
+          cloud_topic_name_, rclcpp::SensorDataQoS(),
           [this](sensor_msgs::msg::PointCloud2::ConstSharedPtr msg) {
             this->cloudCallback(msg);
-          },
-          rclcpp::SensorDataQoS());
+          });
 
   // Install the visualizer
   if (use_rviz_plugin_) {
