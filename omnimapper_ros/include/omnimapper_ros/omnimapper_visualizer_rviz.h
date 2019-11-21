@@ -86,8 +86,7 @@ class OmniMapperVisualizerRViz : public omnimapper::OutputPlugin {
   void clusterCloudCallback(std::vector<CloudPtr> clusters, omnimapper::Time t,
                             boost::optional<std::vector<pcl::PointIndices> >);
   void setICPPlugin(
-      boost::shared_ptr<omnimapper::ICPPoseMeasurementPlugin<PointT> >&
-          icp_plugin) {
+      omnimapper::ICPPoseMeasurementPlugin<PointT>* icp_plugin) {
     icp_plugin_ = icp_plugin;
   }
   bool drawICPCloudsCallback(
@@ -170,7 +169,7 @@ class OmniMapperVisualizerRViz : public omnimapper::OutputPlugin {
       publish_model_srv_;
 
   // ICP Plugin Ref
-  boost::shared_ptr<omnimapper::ICPPoseMeasurementPlugin<PointT> > icp_plugin_;
+  omnimapper::ICPPoseMeasurementPlugin<PointT>* icp_plugin_;
 
   std::vector<pcl::PlanarRegion<PointT>,
               Eigen::aligned_allocator<pcl::PlanarRegion<PointT> > >

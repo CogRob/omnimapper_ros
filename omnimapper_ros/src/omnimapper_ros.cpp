@@ -223,9 +223,7 @@ OmniMapperROS<PointT>::OmniMapperROS(std::shared_ptr<rclcpp::Node> ros_node)
   }
 
   // Set the ICP Plugin on the visualizer
-  boost::shared_ptr<omnimapper::ICPPoseMeasurementPlugin<PointT> > icp_ptr(
-      &icp_plugin_);
-  vis_plugin_.setICPPlugin(icp_ptr);
+  vis_plugin_.setICPPlugin(&icp_plugin_);
 
   // Subscribe to Point Clouds
   pointcloud_sub_ =
@@ -394,7 +392,7 @@ void OmniMapperROS<PointT>::cloudCallback(
     RCLCPP_INFO(ros_node_->get_logger(), "OmniMapperROS got a cloud.");
   double start_cb = pcl::getTime();
   double start_copy = pcl::getTime();
-  CloudPtr cloud(new Cloud());
+  CloudPtr cloud = boost::make_shared<pcl::PointCloud<PointT>>();
   pcl::fromROSMsg<PointT>(*msg, *cloud);
   cloud->header.seq = seq++;  // Emulate the seq field.
   double end_copy = pcl::getTime();
