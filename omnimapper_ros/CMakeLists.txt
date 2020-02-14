@@ -30,6 +30,7 @@ find_package(tf2_geometry_msgs REQUIRED)
 find_package(PkgConfig)
 
 pkg_check_modules(csm REQUIRED csm)
+link_directories(${csm_LIBRARY_DIRS})
 
 find_package(GTSAM REQUIRED)
 
@@ -48,6 +49,7 @@ include_directories(
   ${omnimapper_ros_msgs_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
   ${PCL_INCLUDE_DIRS}
+  ${csm_INCLUDE_DIRS}
   ${GTSAM_INCLUDE_DIR}
   ${rclcpp_INCLUDE_DIR}
   ${tf2_INCLUDE_DIR}
@@ -61,18 +63,8 @@ include_directories(
   ${tf2_geometry_msgs_INCLUDE_DIR}
 )
 
-if(BUILD_TESTING)
-  find_package(ament_lint_auto REQUIRED)
-  # the following line skips the linter which checks for copyrights
-  # uncomment the line when a copyright and license is not present in all source files
-  #set(ament_cmake_copyright_FOUND TRUE)
-  # the following line skips cpplint (only works in a git repo)
-  # uncomment the line when this package is not in a git repo
-  #set(ament_cmake_cpplint_FOUND TRUE)
-  ament_lint_auto_find_test_dependencies()
-endif()
-
-add_library(omnimapper_ros
+set(library_name ${PROJECT_NAME})
+add_library(${library_name} SHARED
   src/canonical_scan.cpp
   src/canonical_scan_matcher_plugin.cpp
   src/csm_math_functions.cpp
@@ -85,16 +77,12 @@ add_library(omnimapper_ros
   src/tf_pose_plugin.cpp
 )
 
-ament_target_dependencies(omnimapper_ros
+set(dependencies
+  omnimapper
   omnimapper_ros_msgs
   rclcpp
   pcl_conversions
   omnimapper
-  # gtsam
-  # organized_segmentation_tools
-  # tcmalloc
-  # profiler
-  # tbb
   csm
   tf2
   tf2_ros
@@ -102,38 +90,49 @@ ament_target_dependencies(omnimapper_ros
   laser_geometry
   sensor_msgs
   visualization_msgs
-  # ${Boost_LIBRARIES}
-  # ${PCL_LIBRARIES}
 )
+
+ament_target_dependencies(${library_name}
+  ${dependencies}
+)
+
+target_link_libraries( ${library_name}
+  omnimapper
+  gtsam
+  ${Boost_LIBRARIES} ${PCL_LIBRARIES} ${orocos_kdl_LIBRARIES} ${csm_LIBRARIES} gsl)
 
 add_executable(omnimapper_ros_node src/omnimapper_ros_node.cpp)
 ament_target_dependencies(omnimapper_ros_node
-  omnimapper_ros_msgs
-  rclcpp
-  pcl_conversions
-  omnimapper
-  # gtsam
-  # organized_segmentation_tools
-  # tcmalloc
-  # profiler
-  # tbb
-  csm
-  tf2
-  tf2_msgs
-  tf2_ros
-  tf2_eigen
-  tf2_geometry_msgs
-  # ${Boost_LIBRARIES}
-  # ${PCL_LIBRARIES}
+  ${dependencies}
 )
 
-target_link_libraries(
-  omnimapper_ros_node
-  omnimapper_ros gtsam omnimapper organized_segmentation_tools
-  ${Boost_LIBRARIES} ${PCL_LIBRARIES} ${orocos_kdl_LIBRARIES} csm gsl)
+target_link_libraries(omnimapper_ros_node
+  omnimapper
+  ${library_name}
+  # gtsam
+  # ${Boost_LIBRARIES} ${PCL_LIBRARIES} ${orocos_kdl_LIBRARIES} ${csm_LIBRARIES} gsl
+)
 
 install(TARGETS
-  omnimapper_ros omnimapper_ros_node
-  DESTINATION lib/${PROJECT_NAME})
+  ${library_name}
+  omnimapper_ros_node
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION lib/${PROJECT_NAME}
+)
 
+install(DIRECTORY include/
+  DESTINATION include/)
+
+# if(BUILD_TESTING)
+#   find_package(ament_lint_auto REQUIRED)
+#   set(ament_cmake_copyright_FOUND TRUE)
+#   set(ament_cmake_cpplint_FOUND TRUE)
+#   ament_lint_auto_find_test_dependencies()
+# endif()
+
+ament_export_include_directories(include)
+ament_export_libraries(
+  ${library_name}
+)
 ament_package()
