@@ -79,17 +79,17 @@ add_library(${library_name} SHARED
 )
 
 set(dependencies
+  csm
+  geometry_msgs
+  laser_geometry
   omnimapper
   omnimapper_ros_msgs
-  rclcpp
   pcl_conversions
-  omnimapper
-  csm
-  tf2
-  tf2_ros
-  tf2_msgs
-  laser_geometry
+  rclcpp
   sensor_msgs
+  tf2
+  tf2_msgs
+  tf2_ros
   visualization_msgs
 )
 
