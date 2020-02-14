@@ -98,9 +98,14 @@ ament_target_dependencies(${library_name}
 )
 
 target_link_libraries( ${library_name}
-  omnimapper
+  ${omnimapper_LIBRARIES}
   gtsam
-  ${Boost_LIBRARIES} ${PCL_LIBRARIES} ${orocos_kdl_LIBRARIES} ${csm_LIBRARIES} gsl)
+  ${Boost_LIBRARIES}
+  ${PCL_LIBRARIES}
+  ${orocos_kdl_LIBRARIES}
+  ${csm_LIBRARIES}
+  gsl
+)
 
 add_executable(omnimapper_ros_node src/omnimapper_ros_node.cpp)
 ament_target_dependencies(omnimapper_ros_node
@@ -108,10 +113,14 @@ ament_target_dependencies(omnimapper_ros_node
 )
 
 target_link_libraries(omnimapper_ros_node
-  omnimapper
   ${library_name}
-  # gtsam
-  # ${Boost_LIBRARIES} ${PCL_LIBRARIES} ${orocos_kdl_LIBRARIES} ${csm_LIBRARIES} gsl
+  ${omnimapper_LIBRARIES}
+  gtsam
+  ${Boost_LIBRARIES}
+  ${PCL_LIBRARIES}
+  ${orocos_kdl_LIBRARIES}
+  ${csm_LIBRARIES}
+  gsl
 )
 
 install(TARGETS
