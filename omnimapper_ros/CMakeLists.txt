@@ -1,11 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 project(omnimapper_ros)
 
-# Default to C99
-if(NOT CMAKE_C_STANDARD)
-  set(CMAKE_C_STANDARD 99)
-endif()
-
 # Default to C++14
 if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 14)
@@ -19,6 +14,7 @@ endif()
 find_package(ament_cmake REQUIRED)
 
 find_package(rclcpp REQUIRED)
+find_package(omnimapper REQUIRED)
 find_package(omnimapper_ros_msgs REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_msgs REQUIRED)
@@ -31,11 +27,13 @@ find_package(sensor_msgs REQUIRED)
 find_package(laser_geometry REQUIRED)
 find_package(pcl_conversions REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
+find_package(PkgConfig)
+
+pkg_check_modules(csm REQUIRED csm)
 
 find_package(GTSAM REQUIRED)
-set(EIGEN_INCLUDE_DIRS ${GTSAM_DIR}/../../../include/gtsam/3rdparty/Eigen)
 
-find_package(Boost REQUIRED COMPONENTS system)
+find_package(Boost REQUIRED)
 
 find_package(PCL 1.7 REQUIRED)
 link_directories(${PCL_LIBRARY_DIRS})
@@ -50,7 +48,6 @@ include_directories(
   ${omnimapper_ros_msgs_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
   ${PCL_INCLUDE_DIRS}
-  ${EIGEN_INCLUDE_DIRS}
   ${GTSAM_INCLUDE_DIR}
   ${rclcpp_INCLUDE_DIR}
   ${tf2_INCLUDE_DIR}
@@ -93,11 +90,11 @@ ament_target_dependencies(omnimapper_ros
   rclcpp
   pcl_conversions
   omnimapper
-  gtsam
-  organized_segmentation_tools
-  tcmalloc
-  profiler
-  tbb
+  # gtsam
+  # organized_segmentation_tools
+  # tcmalloc
+  # profiler
+  # tbb
   csm
   tf2
   tf2_ros
@@ -105,31 +102,29 @@ ament_target_dependencies(omnimapper_ros
   laser_geometry
   sensor_msgs
   visualization_msgs
-  ${Boost_LIBRARIES}
-  ${PCL_LIBRARIES}
+  # ${Boost_LIBRARIES}
+  # ${PCL_LIBRARIES}
 )
 
 add_executable(omnimapper_ros_node src/omnimapper_ros_node.cpp)
 ament_target_dependencies(omnimapper_ros_node
-  omnimapper_ros
   omnimapper_ros_msgs
   rclcpp
   pcl_conversions
   omnimapper
-  gtsam
-  gtsam_unstable
-  organized_segmentation_tools
-  tcmalloc
-  profiler
-  tbb
+  # gtsam
+  # organized_segmentation_tools
+  # tcmalloc
+  # profiler
+  # tbb
   csm
   tf2
   tf2_msgs
   tf2_ros
   tf2_eigen
   tf2_geometry_msgs
-  ${Boost_LIBRARIES}
-  ${PCL_LIBRARIES}
+  # ${Boost_LIBRARIES}
+  # ${PCL_LIBRARIES}
 )
 
 target_link_libraries(
