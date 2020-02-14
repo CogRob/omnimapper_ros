@@ -46,6 +46,7 @@ include_directories(
 # Set include directories
 include_directories(
   SYSTEM
+  ${omnimapper_INCLUDE_DIRS}
   ${omnimapper_ros_msgs_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
   ${PCL_INCLUDE_DIRS}
