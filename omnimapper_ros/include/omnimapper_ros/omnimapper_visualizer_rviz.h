@@ -36,7 +36,7 @@
  *
  */
 
-#include <omnimapper/icp_plugin.h>
+#include <omnimapper/plugins/icp_plugin.h>
 #include <omnimapper/omnimapper_base.h>
 #include <pcl/segmentation/planar_region.h>
 
