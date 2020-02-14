@@ -11,8 +11,9 @@ gtsam::Pose3 omnimapper::tf2pose3(
   tf2::Vector3 axis = transform.getRotation().getAxis();
   double len = sqrt(axis[0] * axis[0] + axis[1] * axis[1] + axis[2] * axis[2]);
   assert(len != 0);
-  gtsam::Vector gtsam_axis =
-      (gtsam::Vector(3) << axis[0] / len, axis[1] / len, axis[2] / len);
+  gtsam::Vector gtsam_axis(3);
+  gtsam_axis << axis[0]/len, axis[1]/len, axis[2]/len;
+  
   double angle = transform.getRotation().getAngle();
   return gtsam::Pose3(
       gtsam::Rot3::rodriguez(gtsam_axis, angle),

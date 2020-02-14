@@ -61,9 +61,14 @@ gtsam::BetweenFactor<gtsam::Pose3>::shared_ptr TFPosePlugin::addRelativePose(
 
   double trans_noise = translation_noise_;  // 1.0;
 
-  gtsam::SharedDiagonal noise = gtsam::noiseModel::Diagonal::Sigmas(
-      (gtsam::Vector(6) << roll_noise_, pitch_noise_, yaw_noise_, trans_noise,
-       trans_noise, trans_noise));
+  gtsam::Vector noise_vector(6);
+  noise_vector << roll_noise_,
+    pitch_noise_,
+    yaw_noise_,
+    trans_noise,
+    trans_noise,
+    trans_noise;
+  gtsam::SharedDiagonal noise = gtsam::noiseModel::Diagonal::Sigmas(noise_vector);
 
   gtsam::BetweenFactor<gtsam::Pose3>::shared_ptr between(
       new gtsam::BetweenFactor<gtsam::Pose3>(sym1, sym2, relative_pose, noise));

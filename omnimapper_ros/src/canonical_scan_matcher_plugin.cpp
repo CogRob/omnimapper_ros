@@ -416,9 +416,11 @@ bool CanonicalScanMatcherPlugin<LScanT>::addConstraint(
     visualization_marker_array_pub_->publish(marker_array);
   }
 
-  if (!always_add)
-    noise = gtsam::noiseModel::Diagonal::Sigmas(
-        (gtsam::Vector(6) << 0.1, 0.1, 0.1, 0.1, 0.1, 0.1));
+  if (!always_add){
+    gtsam::Vector noise_vector(6);
+    noise_vector << 0.1, 0.1, 0.1, 0.1, 0.1, 0.1;
+    noise = gtsam::noiseModel::Diagonal::Sigmas(noise_vector);
+  }
 
   if (debug_)
     printf("CSM Relative Pose: %lf %lf %lf", relative_pose.x(),
