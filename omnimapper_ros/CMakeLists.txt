@@ -19,7 +19,6 @@ find_package(geometry_msgs REQUIRED)
 find_package(laser_geometry REQUIRED)
 find_package(omnimapper REQUIRED)
 find_package(omnimapper_ros_msgs REQUIRED)
-find_package(orocos_kdl REQUIRED)
 find_package(pcl_conversions REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
@@ -33,7 +32,6 @@ find_package(visualization_msgs REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(csm REQUIRED csm)
 link_directories(${csm_LIBRARY_DIRS})
-link_directories(${PCL_LIBRARY_DIRS})
 
 include_directories(
   include
@@ -66,7 +64,6 @@ set(dependencies
   laser_geometry
   omnimapper
   omnimapper_ros_msgs
-  orocos_kdl
   pcl_conversions
   rclcpp
   sensor_msgs
@@ -87,9 +84,7 @@ target_link_libraries( ${library_name}
   gtsam
   ${Boost_LIBRARIES}
   ${PCL_LIBRARIES}
-  ${orocos_kdl_LIBRARIES}
   ${csm_LIBRARIES}
-  gsl
 )
 
 add_executable(omnimapper_ros_node src/omnimapper_ros_node.cpp)
@@ -103,9 +98,7 @@ target_link_libraries(omnimapper_ros_node
   gtsam
   ${Boost_LIBRARIES}
   ${PCL_LIBRARIES}
-  ${orocos_kdl_LIBRARIES}
   ${csm_LIBRARIES}
-  gsl
 )
 
 install(TARGETS
