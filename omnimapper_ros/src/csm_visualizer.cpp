@@ -109,7 +109,7 @@ void omnimapper::CSMVisualizerRViz<LScanT>::update(
     // tf2::transformEigenToTF (eigen_mat, tf_pose);
     // X Y Z W
     tf2::Quaternion orientation(quat[1], quat[2], quat[3], quat[0]);
-    pose.orientation = tf2::toMsg(orientation);
+    tf2::convert(orientation, pose.orientation);
     pose.position.x = sam_pose.x();
     pose.position.y = sam_pose.y();
     pose.position.z = sam_pose.z();
@@ -160,7 +160,7 @@ void omnimapper::CSMVisualizerRViz<LScanT>::update(
   BOOST_FOREACH (const gtsam::NonlinearFactorGraph::sharedFactor& factor,
                  current_graph) {
     // check for poses
-    const std::vector<gtsam::Key> keys = factor->keys();
+    const gtsam::KeyVector keys = factor->keys ();
 
     // skip if there aren't two pose keys
     if ((keys.size() == 2)) {

@@ -26,15 +26,15 @@ gtsam::Pose3 GetPose(
   tf2::fromMsg(transform_msg.transform, transform);
 
   tf2::Vector3 axis = transform.getRotation().getAxis();
-  gtsam::Vector gtsam_axis;
+  gtsam::Vector gtsam_axis(3);
   double axis_norm =
       sqrt(axis[0] * axis[0] + axis[1] * axis[1] + axis[2] * axis[2]);
   if (fabs(axis_norm - 1.0) < 0.01) {
-    gtsam_axis = (gtsam::Vector(3) << axis[0] / axis_norm, axis[1] / axis_norm,
-                  axis[2] / axis_norm);
+    gtsam_axis << axis[0] / axis_norm, axis[1] / axis_norm,
+                  axis[2] / axis_norm;
   } else {
     printf("Axis failure !  Axis length %lf\n", axis_norm);
-    gtsam_axis = (gtsam::Vector(3) << 0, 0, 1);
+    gtsam_axis << 0, 0, 1;
   }
   double angle = transform.getRotation().getAngle();
   return gtsam::Pose3(
@@ -121,9 +121,15 @@ gtsam::noiseModel::Diagonal::shared_ptr GetOdoCovariance(
       sqrt(ypr[0] * ypr[0] + ypr[1] * ypr[1] + ypr[2] * ypr[2]) / 1.5;
   if (a_scale < 0.1) a_scale = 0.1;
 
-  return gtsam::noiseModel::Diagonal::Sigmas(
-      (gtsam::Vector(6) << a_scale * (sroll), a_scale * (spitch),
-       a_scale * (syaw), l_scale * (sx), l_scale * (sy), l_scale * (sz)));
+  gtsam::Vector noise_vector(6);
+  noise_vector <<  a_scale*(sroll),
+    a_scale*(spitch),
+    a_scale*(syaw),
+    l_scale*(sx),
+    l_scale*(sy),
+    l_scale*(sz);
+
+  return gtsam::noiseModel::Diagonal::Sigmas(noise_vector);
 }
 gtsam::Matrix CovarFromDiagonalNoiseModel(
     const gtsam::SharedDiagonal& diagonal) {

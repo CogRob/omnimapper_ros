@@ -36,9 +36,8 @@
  *
  */
 
-#include <gperftools/profiler.h>
-#include <omnimapper/icp_plugin.h>
-#include <omnimapper/no_motion_pose_plugin.h>
+#include <omnimapper/plugins/icp_plugin.h>
+#include <omnimapper/plugins/no_motion_pose_plugin.h>
 #include <omnimapper/omnimapper_base.h>
 #include <omnimapper/time.h>
 #include <omnimapper/trigger.h>
@@ -55,7 +54,7 @@
 #include "omnimapper_ros/omnimapper_visualizer_rviz.h"
 #include "omnimapper_ros/ros_tf_utils.h"
 #include "omnimapper_ros/tf_pose_plugin.h"
-#include "organized_segmentation_tools/organized_segmentation_tbb.h"
+#include "omnimapper/organized_segmentation/organized_segmentation_tbb.h"
 #include "pcl_conversions/pcl_conversions.h"
 #include "sensor_msgs/msg/laser_scan.hpp"
 #include "sensor_msgs/msg/point_cloud2.hpp"
