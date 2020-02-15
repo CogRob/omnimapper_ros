@@ -81,10 +81,13 @@ set(dependencies
   laser_geometry
   omnimapper
   omnimapper_ros_msgs
+  orocos_kdl
   pcl_conversions
   rclcpp
   sensor_msgs
   tf2
+  tf2_eigen
+  tf2_geometry_msgs
   tf2_msgs
   tf2_ros
   visualization_msgs
