@@ -2,9 +2,8 @@ repositories:
     CogRob/omnimapper:
       type: git
       url: https://github.com/CogRob/omnimapper.git
-      version: package
+      version: eloquent-devel
     CogRob/omnimapper_ros:
       type: git
       url: https://github.com/CogRob/omnimapper_ros.git
-      version: dashing-devel
-#1
+      version: eloquent-devel
