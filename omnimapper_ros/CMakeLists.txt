@@ -11,32 +11,28 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 # find dependencies
+find_package(Boost REQUIRED COMPONENTS timer)
+find_package(GTSAM REQUIRED)
+find_package(PCL 1.7 REQUIRED)
 find_package(ament_cmake REQUIRED)
-
-find_package(rclcpp REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(laser_geometry REQUIRED)
 find_package(omnimapper REQUIRED)
 find_package(omnimapper_ros_msgs REQUIRED)
+find_package(orocos_kdl REQUIRED)
+find_package(pcl_conversions REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(sensor_msgs REQUIRED)
 find_package(tf2 REQUIRED)
+find_package(tf2_eigen REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
 find_package(tf2_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
-find_package(tf2_eigen REQUIRED)
-find_package(orocos_kdl REQUIRED)
 find_package(visualization_msgs REQUIRED)
-find_package(geometry_msgs REQUIRED)
-find_package(sensor_msgs REQUIRED)
-find_package(laser_geometry REQUIRED)
-find_package(pcl_conversions REQUIRED)
-find_package(tf2_geometry_msgs REQUIRED)
-find_package(PkgConfig)
 
+find_package(PkgConfig REQUIRED)
 pkg_check_modules(csm REQUIRED csm)
 link_directories(${csm_LIBRARY_DIRS})
-
-find_package(GTSAM REQUIRED)
-
-find_package(Boost REQUIRED)
-
-find_package(PCL 1.7 REQUIRED)
 link_directories(${PCL_LIBRARY_DIRS})
 
 include_directories(
