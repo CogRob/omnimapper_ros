@@ -42,22 +42,23 @@ include_directories(
 # Set include directories
 include_directories(
   SYSTEM
-  ${omnimapper_INCLUDE_DIRS}
-  ${omnimapper_ros_msgs_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
+  ${GTSAM_INCLUDE_DIR}
   ${PCL_INCLUDE_DIRS}
   ${csm_INCLUDE_DIRS}
-  ${GTSAM_INCLUDE_DIR}
-  ${rclcpp_INCLUDE_DIR}
-  ${tf2_INCLUDE_DIR}
-  ${tf2_ros_INCLUDE_DIR}
-  ${tf2_eigen_INCLUDE_DIR}
-  ${visualization_msgs_INCLUDE_DIR}
   ${geometry_msgs_INCLUDE_DIR}
-  ${sensor_msgs_INCLUDE_DIR}
   ${laser_geometry_INCLUDE_DIR}
+  ${omnimapper_INCLUDE_DIRS}
+  ${omnimapper_ros_msgs_INCLUDE_DIRS}
   ${pcl_conversions_INCLUDE_DIR}
+  ${rclcpp_INCLUDE_DIR}
+  ${sensor_msgs_INCLUDE_DIR}
+  ${tf2_INCLUDE_DIR}
+  ${tf2_eigen_INCLUDE_DIR}
   ${tf2_geometry_msgs_INCLUDE_DIR}
+  ${tf2_msgs_INCLUDE_DIR}
+  ${tf2_ros_INCLUDE_DIR}
+  ${visualization_msgs_INCLUDE_DIR}
 )
 
 set(library_name ${PROJECT_NAME})
