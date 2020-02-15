@@ -475,9 +475,8 @@ void OmniMapperROS<PointT>::publishMapToOdom() {
   const tf2::Transform current_pose_ros = omnimapper::pose3totf(current_pose);
   const tf2::Stamped<tf2::Transform> map_to_base(
       current_pose_ros.inverse(), tf2_ros::fromMsg(current_time_ros), "base");
-  const geometry_msgs::msg::TransformStamped map_to_base_msg =
-      tf2::toMsg<tf2::Stamped<tf2::Transform>,
-                 geometry_msgs::msg::TransformStamped>(map_to_base);
+  geometry_msgs::msg::TransformStamped map_to_base_msg;
+  tf2::convert(map_to_base, map_to_base_msg);
 
   geometry_msgs::msg::TransformStamped odom_to_map_msg;
   tf2::Transform odom_to_map;
@@ -498,9 +497,9 @@ void OmniMapperROS<PointT>::publishMapToOdom() {
   }
   tf2::Stamped<tf2::Transform> map_to_odom(
       odom_to_map.inverse(), tf2_ros::fromMsg(ros_node_->now()), "map");
-  geometry_msgs::msg::TransformStamped map_to_odom_msg =
-      tf2::toMsg<tf2::Stamped<tf2::Transform>,
-                 geometry_msgs::msg::TransformStamped>(map_to_odom);
+  geometry_msgs::msg::TransformStamped map_to_odom_msg;
+  tf2::convert(map_to_odom, map_to_odom_msg);
+
   map_to_odom_msg.child_frame_id = odom_frame_name_;
   tf_broadcaster_.sendTransform(map_to_odom_msg);
 }
@@ -515,9 +514,8 @@ void OmniMapperROS<PointT>::publishCurrentPose() {
   tf2::Stamped<tf2::Transform> current_pose_ros(
       omnimapper::pose3totf(current_pose), tf2_ros::fromMsg(ros_node_->now()),
       "map");
-  geometry_msgs::msg::TransformStamped current_pose_msg =
-      tf2::toMsg<tf2::Stamped<tf2::Transform>,
-                 geometry_msgs::msg::TransformStamped>(current_pose_ros);
+  geometry_msgs::msg::TransformStamped current_pose_msg;  
+  tf2::convert(current_pose_ros, current_pose_msg);
   current_pose_msg.child_frame_id = "current_pose";
   tf_broadcaster_.sendTransform(current_pose_msg);
 }
