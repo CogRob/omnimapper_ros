@@ -13,7 +13,7 @@ endif()
 # find dependencies
 find_package(Boost REQUIRED COMPONENTS timer)
 find_package(GTSAM REQUIRED)
-find_package(PCL 1.7 REQUIRED)
+find_package(PCL 1.8 REQUIRED)
 find_package(ament_cmake REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(laser_geometry REQUIRED)
