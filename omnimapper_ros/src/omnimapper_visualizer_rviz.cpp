@@ -38,7 +38,8 @@
 
 #include <omnimapper/transform_tools.h>
 #include <pcl/common/transforms.h>
-//#include <omnimapper/BoundedPlane3.h>
+#include <omnimapper/plane.h>
+#include <omnimapper/BoundedPlane3.h>
 #include <pcl/common/common.h>
 #include <pcl/common/time.h>
 #include <pcl/filters/passthrough.h>
@@ -700,7 +701,7 @@ void omnimapper::OmniMapperVisualizerRViz<PointT>::spinOnce() {
   }
 
   // Draw Planar Landmarks
-  /*
+  
   if (draw_planar_landmarks_)
   {
     visualization_msgs::msg::MarkerArray marker_array;
@@ -779,10 +780,10 @@ void omnimapper::OmniMapperVisualizerRViz<PointT>::spinOnce() {
     }
 
   }
-  */
+  
 
   // Draw Bounded Planar Landmarks
-  /*
+  
   if (draw_planar_landmarks_)
   {
     visualization_msgs::msg::MarkerArray marker_array;
@@ -865,7 +866,7 @@ void omnimapper::OmniMapperVisualizerRViz<PointT>::spinOnce() {
     }
 
   }
-  */
+  
 }
 
 template <typename PointT>

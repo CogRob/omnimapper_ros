@@ -37,6 +37,8 @@
  */
 
 #include <omnimapper/plugins/icp_plugin.h>
+#include <omnimapper/plugins/plane_plugin.h>
+#include <omnimapper/plugins/bounded_plane_plugin.h>
 #include <omnimapper/plugins/no_motion_pose_plugin.h>
 #include <omnimapper/omnimapper_base.h>
 #include <omnimapper/time.h>
@@ -121,6 +123,12 @@ class OmniMapperROS {
   // Edge ICP Plugin
   omnimapper::ICPPoseMeasurementPlugin<PointT> edge_icp_plugin_;
 
+  // Plane Plugin
+  omnimapper::PlaneMeasurementPlugin<PointT> plane_plugin_;
+
+  // Bounded Plane Plugin
+  omnimapper::BoundedPlanePlugin<PointT> bounded_plane_plugin_;
+  
   // CSM Plugin
   omnimapper::CanonicalScanMatcherPlugin<sensor_msgs::msg::LaserScan>
       csm_plugin_;
