@@ -7,15 +7,17 @@ FROM $FROM_IMAGE AS cache
 ENV UNDERLAY_WS /opt/underlay_ws
 RUN mkdir -p $UNDERLAY_WS/src
 WORKDIR $UNDERLAY_WS
-COPY ./install/underlay.repos ./
-RUN vcs import src < underlay.repos
+COPY ./install/underlay ./tmp
+RUN vcs import src < tmp/underlay.repos \
+    && cp -rl tmp/* src/ \
+    && rm -rf tmp
 
 # copy overlay source
 ENV OVERLAY_WS /opt/overlay_ws
 RUN mkdir -p $OVERLAY_WS/src
 WORKDIR $OVERLAY_WS
-COPY ./install/overlay.repos ./
-RUN vcs import src < overlay.repos
+COPY ./install/overlay.repos ./src
+RUN vcs import src < src/overlay.repos
 COPY ./ src/CogRob/omnimapper_ros
 
 # copy manifests for caching
