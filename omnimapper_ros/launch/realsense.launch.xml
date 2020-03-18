@@ -1,0 +1,23 @@
+<launch>
+  <group>
+    <arg name="use_sim_time" default="false" />
+
+    <!-- Subscribed Topics -->
+    <let name="cloud_topic_name"  value="/camera/pointcloud"/>
+
+    <!-- Frame IDs for Odometry -->
+    <let name="base_frame_name" value="base_link" />
+    <let name="odom_frame_name" value="odom" />
+    <let name="rgbd_frame_name" value="camera_color_optical_frame" />
+
+    <!-- Launch omnimapper_ros node -->
+    <include file="$(find-pkg-share omnimapper_ros)/launch/omnimapper_ros.launch.xml"/>
+  </group>
+
+  <!-- Omnimapper publishes a TF from the `map` to the `odom` refrence frame.
+    Here, the identity transform is simply used to link `camera_link` to the tf tree. -->
+  <node name="base_link_to_camera_link" pkg="tf2_ros" exec="static_transform_publisher"
+    args="0 0 0 0 0 0 1 odom base_link" />
+  <node name="base_link_to_camera_link" pkg="tf2_ros" exec="static_transform_publisher"
+    args="0 0 0 0 0 0 1 base_link camera_link" />
+</launch>

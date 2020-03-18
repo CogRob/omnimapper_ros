@@ -1,0 +1,194 @@
+<launch>
+  <arg name="use_sim_time" default="true"/>
+
+  <!-- Subscribed Topics -->
+  <arg name="cloud_topic_name"      default="/pointcloud"/>
+
+  <!-- Frame IDs -->
+  <arg name="base_frame_name" default="base_link"/>
+  <arg name="odom_frame_name" default="odom"/>
+  <arg name="rgbd_frame_name" default="rgbd_frame_name"/>
+
+  <arg name="use_planes" default="true"/>
+  <arg name="use_bounded_planes" default="true"/>
+  <arg name="use_objects" default="true"/>
+  <arg name="use_csm" default="true"/>
+  <arg name="use_icp" default="true"/>
+  <arg name="use_occ_edge_icp" default="false"/>
+  <arg name="use_tf" default="true"/>
+  <arg name="use_error_plugin" default="false"/>
+  <arg name="use_error_eval_plugin" default="false"/>
+  <arg name="use_no_motion" default="false"/>
+
+  <arg name="icp_leaf_size" default="0.05"/>
+  <arg name="icp_max_correspondence_distance" default="0.5"/>
+  <arg name="icp_score_thresh" default="0.8"/>
+  <arg name="icp_trans_noise" default="0.1"/>
+  <arg name="icp_rot_noise" default="0.1"/>
+  <arg name="icp_add_identity_on_fail" default="false"/>
+  <arg name="icp_add_loop_closures" default="true"/>
+  <arg name="icp_loop_closure_distance_threshold" default="1.0"/>
+  <arg name="icp_loop_closure_score_threshold" default="0.8"/>
+  <arg name="icp_loop_closure_pose_index_threshold" default="20"/>
+  <arg name="icp_save_full_res_clouds" default="false"/>
+
+  <arg name="occ_edge_trans_noise" default="0.1"/>
+  <arg name="occ_edge_rot_noise" default="0.1"/>
+  <arg name="occ_edge_score_thresh" default="0.1"/>
+  <arg name="occ_edge_max_correspondence_dist" default="0.1"/>
+  <arg name="occ_edge_add_identity_on_fail" default="false"/>
+  <arg name="plane_range_threshold" default="0.6"/>
+  <!-- 10.0 degrees ~= 0.174533 rads -->
+  <arg name="plane_angular_threshold" default="0.174533"/>
+  <arg name="plane_range_noise" default="0.2"/>
+  <arg name="plane_angular_noise" default="0.26"/>
+
+  <arg name="tf_trans_noise" default="0.05"/>
+  <!-- 5.0 degrees ~= 0.0872664626 rads -->
+  <arg name="tf_rot_noise" default="0.0872664626"/>
+  <!-- <arg name="tf_roll_noise" default="$(var tf_rot_noise)"/> -->
+  <!-- <arg name="tf_pitch_noise" default="$(var tf_rot_noise)"/> -->
+  <!-- <arg name="tf_yaw_noise" default="$(var tf_rot_noise)"/> -->
+
+  <arg name="use_init_pose" default="false"/>
+  <arg name="suppress_commit_window" default="false"/>
+  <arg name="init_pose_from_tf" default="false"/>
+  <arg name="init_x" default="0.0"/>
+  <arg name="init_y" default="0.0"/>
+  <arg name="init_z" default="0.0"/>
+  <arg name="init_qx" default="0.0"/>
+  <arg name="init_qy" default="0.0"/>
+  <arg name="init_qz" default="0.0"/>
+  <arg name="init_qw" default="1.0"/>
+
+  <arg name="use_rviz_plugin" default="true"/>
+  <arg name="draw_pose_array" default="true"/>
+  <arg name="draw_pose_graph" default="true"/>
+  <arg name="draw_label_cloud" default="true"/>
+  <arg name="draw_clusters" default="false"/>
+  <arg name="draw_icp_clouds_always" default="false"/>
+  <arg name="use_label_cloud" default="true"/>
+  <arg name="add_pose_per_cloud" default="true"/>
+  <arg name="broadcast_map_to_odom" default="false"/>
+  <arg name="broadcast_current_pose" default="false"/>
+  <arg name="use_distortion_model" default="false"/>
+  <arg name="use_rgbd_sensor_base_tf_functor" default="true"/>
+
+  <arg name="evaluation_mode" default="false"/>
+  <arg name="evaluation_pcd_path" default=""/>
+  <arg name="evaluation_associated_txt_path" default=""/>
+  <arg name="evaluation_ground_truth_txt_path" default=""/>
+  <arg name="evaluation_output_trajectory_txt_path" default=""/>
+  <arg name="evaluation_mode_write_trajectory" default="true"/>
+  <arg name="evaluation_mode_paused" default="false"/>
+  <arg name="evaluation_show_frames" default="true"/>
+
+  <arg name="object_database_location" default=""/>
+  <arg name="object_loop_closures" default="true"/>
+  <arg name="object_landmarks" default="true"/>
+  <arg name="save_object_models" default="true"/>
+  <arg name="object_min_height" default="0.3"/>
+  <arg name="use_organized_segmentation" default="true"/>
+
+  <arg name="debug" default="false"/>
+  <arg name="ar_mode" default="false"/>
+
+  <!-- Launch main node  -->
+  <node name="omnimapper_ros_node" pkg="omnimapper_ros" exec="omnimapper_ros_node"
+    output="screen" ns="omnimapper_ros">
+
+    <param name="use_sim_time"      value="$(var use_sim_time)"/>
+
+    <!-- Subscribed Topics -->
+    <param name="cloud_topic_name" value="$(var cloud_topic_name)"/>
+
+    <!-- Frame IDs for Odometry -->
+    <param name="base_frame_name" value="$(var base_frame_name)"/>
+    <param name="odom_frame_name" value="$(var odom_frame_name)"/>
+    <param name="rgbd_frame_name" value="$(var rgbd_frame_name)"/>
+
+    <param name="use_planes" value="$(var use_planes)"/>
+    <param name="use_bounded_planes" value="$(var use_bounded_planes)"/>
+    <param name="use_objects" value="$(var use_objects)"/>
+    <param name="use_csm" value="$(var use_csm)"/>
+    <param name="use_icp" value="$(var use_icp)"/>
+    <param name="use_occ_edge_icp" value="$(var use_occ_edge_icp)"/>
+    <param name="use_tf" value="$(var use_tf)"/>
+    <param name="use_error_plugin" value="$(var use_error_plugin)"/>
+    <param name="use_error_eval_plugin" value="$(var use_error_eval_plugin)"/>
+    <param name="use_no_motion" value="$(var use_no_motion)"/>
+
+    <param name="icp_leaf_size" value="$(var icp_leaf_size)"/>
+    <param name="icp_max_correspondence_distance" value="$(var icp_max_correspondence_distance)"/>
+    <param name="icp_score_thresh" value="$(var icp_score_thresh)"/>
+    <param name="icp_trans_noise" value="$(var icp_trans_noise)"/>
+    <param name="icp_rot_noise" value="$(var icp_rot_noise)"/>
+    <param name="icp_add_identity_on_fail" value="$(var icp_add_identity_on_fail)"/>
+    <param name="icp_add_loop_closures" value="$(var icp_add_loop_closures)"/>
+    <param name="icp_loop_closure_distance_threshold" value="$(var icp_loop_closure_distance_threshold)"/>
+    <param name="icp_loop_closure_score_threshold" value="$(var icp_loop_closure_score_threshold)"/>
+    <param name="icp_loop_closure_pose_index_threshold" value="$(var icp_loop_closure_pose_index_threshold)"/>
+    <param name="icp_save_full_res_clouds" value="$(var icp_save_full_res_clouds)"/>
+
+    <param name="occ_edge_trans_noise" value="$(var occ_edge_trans_noise)"/>
+    <param name="occ_edge_rot_noise" value="$(var occ_edge_rot_noise)"/>
+    <param name="occ_edge_score_thresh" value="$(var occ_edge_score_thresh)"/>
+    <param name="occ_edge_max_correspondence_dist" value="$(var occ_edge_max_correspondence_dist)"/>
+    <param name="occ_edge_add_identity_on_fail" value="$(var occ_edge_add_identity_on_fail)"/>
+
+    <param name="plane_range_threshold" value="$(var plane_range_threshold)"/>
+    <param name="plane_angular_threshold" value="$(var plane_angular_threshold)"/>
+    <param name="plane_range_noise" value="$(var plane_range_noise)"/>
+    <param name="plane_angular_noise" value="$(var plane_angular_noise)"/>
+
+    <param name="tf_trans_noise" value="$(var tf_trans_noise)"/>
+    <param name="tf_rot_noise" value="$(var tf_rot_noise)"/>
+    <!-- <param name="tf_roll_noise" value="$(var tf_roll_noise)"/> -->
+    <!-- <param name="tf_pitch_noise" value="$(var tf_pitch_noise)"/> -->
+    <!-- <param name="tf_yaw_noise" value="$(var tf_yaw_noise)"/> -->
+
+    <param name="use_init_pose" value="$(var use_init_pose)"/>
+    <param name="suppress_commit_window" value="$(var suppress_commit_window)"/>
+    <param name="init_pose_from_tf" value="$(var init_pose_from_tf)"/>
+    <param name="init_x" value="$(var init_x)"/>
+    <param name="init_y" value="$(var init_y)"/>
+    <param name="init_z" value="$(var init_z)"/>
+    <param name="init_qx" value="$(var init_qx)"/>
+    <param name="init_qy" value="$(var init_qy)"/>
+    <param name="init_qz" value="$(var init_qz)"/>
+    <param name="init_qw" value="$(var init_qw)"/>
+
+    <param name="use_rviz_plugin" value="$(var use_rviz_plugin)"/>
+    <param name="draw_pose_array" value="$(var draw_pose_array)"/>
+    <param name="draw_pose_graph" value="$(var draw_pose_graph)"/>
+    <param name="draw_label_cloud" value="$(var draw_label_cloud)"/>
+    <param name="draw_clusters" value="$(var draw_clusters)"/>
+    <param name="draw_icp_clouds_always" value="$(var draw_icp_clouds_always)"/>
+    <param name="use_label_cloud" value="$(var use_label_cloud)"/>
+    <param name="add_pose_per_cloud" value="$(var add_pose_per_cloud)"/>
+    <param name="broadcast_map_to_odom" value="$(var broadcast_map_to_odom)"/>
+    <param name="broadcast_current_pose" value="$(var broadcast_current_pose)"/>
+    <param name="use_distortion_model" value="$(var use_distortion_model)"/>
+    <param name="use_rgbd_sensor_base_tf_functor" value="$(var use_rgbd_sensor_base_tf_functor)"/>
+
+    <param name="evaluation_mode" value="$(var evaluation_mode)"/>
+    <param name="evaluation_pcd_path" value="$(var evaluation_pcd_path)"/>
+    <param name="evaluation_associated_txt_path" value="$(var evaluation_associated_txt_path)"/>
+    <param name="evaluation_ground_truth_txt_path" value="$(var evaluation_ground_truth_txt_path)"/>
+    <param name="evaluation_output_trajectory_txt_path" value="$(var evaluation_output_trajectory_txt_path)"/>
+    <param name="evaluation_mode_write_trajectory" value="$(var evaluation_mode_write_trajectory)"/>
+    <param name="evaluation_mode_paused" value="$(var evaluation_mode_paused)"/>
+    <param name="evaluation_show_frames" value="$(var evaluation_show_frames)"/>
+
+    <param name="object_database_location" value="$(var object_database_location)"/>
+    <param name="object_loop_closures" value="$(var object_loop_closures)"/>
+    <param name="object_landmarks" value="$(var object_landmarks)"/>
+    <param name="save_object_models" value="$(var save_object_models)"/>
+    <param name="object_min_height" value="$(var object_min_height)"/>
+    <param name="use_organized_segmentation" value="$(var use_organized_segmentation)"/>
+
+    <param name="debug" value="$(var debug)"/>
+    <param name="ar_mode" value="$(var ar_mode)"/>
+
+  </node>
+</launch>
