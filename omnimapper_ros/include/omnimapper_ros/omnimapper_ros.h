@@ -101,6 +101,9 @@ class OmniMapperROS {
   // ROS Node Handle
   std::shared_ptr<rclcpp::Node> ros_node_;
 
+  // ROS QoS
+  rclcpp::QoS ros_qos_;
+
   // TF Listener
   std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
   tf2_ros::TransformListener tf_listener_;
@@ -163,6 +166,7 @@ class OmniMapperROS {
   std::string base_frame_name_;
   std::string rgbd_frame_name_;
   std::string cloud_topic_name_;
+  std::string ros_qos_type_;
 
   bool init_pose_from_tf_;
   bool use_init_pose_;

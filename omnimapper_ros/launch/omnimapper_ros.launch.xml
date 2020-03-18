@@ -1,6 +1,11 @@
 <launch>
   <arg name="use_sim_time" default="true"/>
 
+  <!-- To change between real sensors or rosbab
+    When subscribing from real sensor: use "SensorDataQoS"
+    When subscribing from rosbag play; use "SystemDefaultsQoS" -->
+  <arg name="ros_qos_type" default="SystemDefaultsQoS"/>
+
   <!-- Subscribed Topics -->
   <arg name="cloud_topic_name"      default="/pointcloud"/>
 
@@ -100,6 +105,7 @@
     <param name="use_sim_time"      value="$(var use_sim_time)"/>
 
     <!-- Subscribed Topics -->
+    <param name="ros_qos_type" value="$(var ros_qos_type)"/>
     <param name="cloud_topic_name" value="$(var cloud_topic_name)"/>
 
     <!-- Frame IDs for Odometry -->

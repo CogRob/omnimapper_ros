@@ -3,6 +3,7 @@
     <arg name="use_sim_time" default="false" />
 
     <!-- Subscribed Topics -->
+    <arg name="ros_qos_type" default="SensorDataQoS"/>
     <let name="cloud_topic_name"  value="/camera/pointcloud"/>
 
     <!-- Frame IDs for Odometry -->

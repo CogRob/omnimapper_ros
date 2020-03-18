@@ -43,6 +43,7 @@
 template <typename PointT>
 OmniMapperROS<PointT>::OmniMapperROS(std::shared_ptr<rclcpp::Node> ros_node)
     : ros_node_(ros_node),
+      ros_qos_(rclcpp::SystemDefaultsQoS()),
       tf_buffer_(std::make_shared<tf2_ros::Buffer>(ros_node->get_clock(),
                                                    tf2::durationFromSec(500))),
       tf_listener_(*tf_buffer_),
@@ -68,6 +69,14 @@ OmniMapperROS<PointT>::OmniMapperROS(std::shared_ptr<rclcpp::Node> ros_node)
       new omnimapper::GetROSTimeFunctor(ros_node_));
   omb_.setTimeFunctor(time_functor_ptr);
   omb_.setSuppressCommitWindow(suppress_commit_window_);
+
+  if (ros_qos_type_ == std::string("SensorDataQoS")){
+    ros_qos_ = rclcpp::SensorDataQoS();
+  } else if (ros_qos_type_ == std::string("SystemDefaultsQoS")){
+    ros_qos_ = rclcpp::SystemDefaultsQoS();
+  } else {
+    ros_qos_ = rclcpp::SystemDefaultsQoS();
+  }
 
   // Optionally specify an alternate initial pose
   if (use_init_pose_) {
@@ -249,7 +258,7 @@ OmniMapperROS<PointT>::OmniMapperROS(std::shared_ptr<rclcpp::Node> ros_node)
     // Subscribe to laser scan
     laserScan_sub_ =
         ros_node_->create_subscription<sensor_msgs::msg::LaserScan>(
-            "/scan", rclcpp::SensorDataQoS(),
+            "/scan", ros_qos_,
             [this](sensor_msgs::msg::LaserScan::ConstSharedPtr msg) {
               this->laserScanCallback(msg);
             });
@@ -279,7 +288,7 @@ OmniMapperROS<PointT>::OmniMapperROS(std::shared_ptr<rclcpp::Node> ros_node)
   // Subscribe to Point Clouds
   pointcloud_sub_ =
       ros_node_->create_subscription<sensor_msgs::msg::PointCloud2>(
-          cloud_topic_name_, rclcpp::SensorDataQoS(),
+          cloud_topic_name_, ros_qos_,
           [this](sensor_msgs::msg::PointCloud2::ConstSharedPtr msg) {
             this->cloudCallback(msg);
           });
@@ -316,6 +325,9 @@ OmniMapperROS<PointT>::OmniMapperROS(std::shared_ptr<rclcpp::Node> ros_node)
 template <typename PointT>
 void OmniMapperROS<PointT>::loadROSParams() {
   // Load some params
+
+  ros_node_->get_parameter_or("ros_qos_type", ros_qos_type_,  std::string("SystemDefaultsQoS"));
+
   ros_node_->get_parameter_or("use_planes", use_planes_, true);
   ros_node_->get_parameter_or("use_bounded_planes", use_bounded_planes_, true);
   ros_node_->get_parameter_or("use_objects", use_objects_, true);
