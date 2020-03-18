@@ -43,7 +43,8 @@ Once you have the docker image, use rocker to launch a container with GUI displa
 rocker --x11 --nvidia \
   --oyr-run-arg " --net=host --ipc=host --pid=host" \
   cogrob/omnimapper_ros \
-  ros2 launch omnimapper_ros realsense.launch.xml
+  ros2 launch omnimapper_ros realsense.launch.xml \
+    use_rosbag:=false
 ```
 
 In this case, you'll also need to launch a ros2 realsense node to acquire sensor data.

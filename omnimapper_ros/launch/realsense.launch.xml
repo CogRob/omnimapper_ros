@@ -1,9 +1,13 @@
 <launch>
+  
+  <!-- To switch between using rosbag or sensor -->
+  <arg name="use_rosbag" default="true"/>
+
   <group>
     <arg name="use_sim_time" default="false" />
 
     <!-- Subscribed Topics -->
-    <arg name="ros_qos_type" default="SensorDataQoS"/>
+    <arg name="ros_qos_type" default="SensorDataQoS" unless="$(var use_rosbag)"/>
     <let name="cloud_topic_name"  value="/camera/pointcloud"/>
 
     <!-- Frame IDs for Odometry -->
@@ -57,6 +61,16 @@
     Here, the identity transform is simply used to link `camera_link` to the tf tree. -->
   <node name="odom_to_base_link" pkg="tf2_ros" exec="static_transform_publisher"
     args="0 0 0 0 0 0 1 odom base_link" />
-  <node name="base_link_to_camera_link" pkg="tf2_ros" exec="static_transform_publisher"
-    args="0 0 0 0 0 0 1 base_link camera_link" />
+  
+  <group if="$(var use_rosbag)">
+    <!-- TODO: rosbag2 doesn't seem to be publishing `/tf_static` with the correct QoS.
+      For bagfile playback, just link "base_link" and "camera_color_optical_frame" directly -->
+    <node name="base_link_to_camera_link" pkg="tf2_ros" exec="static_transform_publisher"
+      args="0 0 0 0 0 0 1 base_link camera_color_optical_frame" />
+  </group>
+  <group unless="$(var use_rosbag)">
+    <node name="base_link_to_camera_link" pkg="tf2_ros" exec="static_transform_publisher"
+      args="0 0 0 0 0 0 1 base_link camera_link" />
+  </group>
+
 </launch>
