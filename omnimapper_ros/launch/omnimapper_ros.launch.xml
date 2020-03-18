@@ -13,7 +13,7 @@
   <arg name="use_bounded_planes" default="false"/>
   <arg name="use_objects" default="false"/>
   <arg name="use_csm" default="false"/>
-  <arg name="use_icp" default="true"/>
+  <arg name="use_icp" default="false"/>
   <arg name="use_occ_edge_icp" default="false"/>
   <arg name="use_tf" default="false"/>
   <arg name="use_error_plugin" default="false"/>

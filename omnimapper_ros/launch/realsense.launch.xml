@@ -12,15 +12,14 @@
 
     <let name="debug" value="true"/>
     
-    <let name="use_planes" value="false"/>
-    <let name="use_icp" value="true"/>
-    <let name="use_csm" value="false"/>
-    <let name="use_objects" value="false"/>
-    <let name="use_occ_edge_icp" value="false"/>
     <let name="use_tf" value="true"/>
-    <let name="use_error_plugin" value="false"/>
-    <let name="use_tsdf_plugin" value="false"/>
     <let name="use_no_motion" value="true"/>
+    <arg name="use_bounded_planes" default="true"/>
+
+    <arg name="use_planes" default="false"/>
+    <arg name="use_csm" default="false"/>
+    <arg name="use_icp" default="false"/>
+    <arg name="use_occ_edge_icp" default="false"/>
 
     <let name="use_rgbd_sensor_base_tf_functor" value="false"/>
     <let name="broadcast_map_to_odom" value="true"/>
