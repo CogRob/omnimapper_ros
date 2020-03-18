@@ -9,13 +9,13 @@
   <arg name="odom_frame_name" default="odom"/>
   <arg name="rgbd_frame_name" default="rgbd_frame_name"/>
 
-  <arg name="use_planes" default="true"/>
-  <arg name="use_bounded_planes" default="true"/>
-  <arg name="use_objects" default="true"/>
-  <arg name="use_csm" default="true"/>
+  <arg name="use_planes" default="false"/>
+  <arg name="use_bounded_planes" default="false"/>
+  <arg name="use_objects" default="false"/>
+  <arg name="use_csm" default="false"/>
   <arg name="use_icp" default="true"/>
   <arg name="use_occ_edge_icp" default="false"/>
-  <arg name="use_tf" default="true"/>
+  <arg name="use_tf" default="false"/>
   <arg name="use_error_plugin" default="false"/>
   <arg name="use_error_eval_plugin" default="false"/>
   <arg name="use_no_motion" default="false"/>
@@ -51,7 +51,7 @@
   <!-- <arg name="tf_yaw_noise" default="$(var tf_rot_noise)"/> -->
 
   <arg name="use_init_pose" default="false"/>
-  <arg name="suppress_commit_window" default="false"/>
+  <arg name="suppress_commit_window" default="true"/>
   <arg name="init_pose_from_tf" default="false"/>
   <arg name="init_x" default="0.0"/>
   <arg name="init_y" default="0.0"/>
@@ -70,9 +70,9 @@
   <arg name="use_label_cloud" default="true"/>
   <arg name="add_pose_per_cloud" default="true"/>
   <arg name="broadcast_map_to_odom" default="false"/>
-  <arg name="broadcast_current_pose" default="false"/>
+  <arg name="broadcast_current_pose" default="true"/>
   <arg name="use_distortion_model" default="false"/>
-  <arg name="use_rgbd_sensor_base_tf_functor" default="true"/>
+  <arg name="use_rgbd_sensor_base_tf_functor" default="false"/>
 
   <arg name="evaluation_mode" default="false"/>
   <arg name="evaluation_pcd_path" default=""/>
@@ -95,7 +95,7 @@
 
   <!-- Launch main node  -->
   <node name="omnimapper_ros_node" pkg="omnimapper_ros" exec="omnimapper_ros_node"
-    output="screen" ns="omnimapper_ros">
+    output="screen">
 
     <param name="use_sim_time"      value="$(var use_sim_time)"/>
 

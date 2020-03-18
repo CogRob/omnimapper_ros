@@ -10,13 +10,52 @@
     <let name="odom_frame_name" value="odom" />
     <let name="rgbd_frame_name" value="camera_color_optical_frame" />
 
+    <let name="debug" value="true"/>
+    
+    <let name="use_planes" value="false"/>
+    <let name="use_icp" value="true"/>
+    <let name="use_csm" value="false"/>
+    <let name="use_objects" value="false"/>
+    <let name="use_occ_edge_icp" value="false"/>
+    <let name="use_tf" value="true"/>
+    <let name="use_error_plugin" value="false"/>
+    <let name="use_tsdf_plugin" value="false"/>
+    <let name="use_no_motion" value="true"/>
+
+    <let name="use_rgbd_sensor_base_tf_functor" value="false"/>
+    <let name="broadcast_map_to_odom" value="true"/>
+    <let name="use_init_pose" value="true"/>
+    <let name="init_pose_from_tf" value="true"/>
+    
+    <let name="icp_leaf_size" value="0.025"/>
+    <let name="icp_max_correspondence_distance" value="0.1"/>
+    <let name="icp_trans_noise" value="0.05"/>
+    <let name="icp_rot_noise" value="0.05"/>
+    <let name="icp_add_loop_closures" value="true"/>
+
+    <let name="occ_edge_trans_noise" value="0.05"/>
+    <let name="occ_edge_rot_noise" value="0.1"/>
+    <let name="occ_edge_max_correspondence_dist" value="0.05"/>
+    <let name="occ_edge_score_thresh" value="0.1"/>
+    <let name="occ_edge_add_identity_on_fail" value="false"/>
+
+    <let name="tf_trans_noise" value="10.05"/>
+    <let name="tf_rot_noise" value="0.0872664626"/>
+    <let name="tf_roll_noise" value="0.087"/>
+    <let name="tf_pitch_noise" value="0.087"/>
+    <let name="tf_yaw_noise" value="0.087"/>
+    
+    <let name="draw_pose_array" value="true"/>
+    <let name="draw_pose_graph" value="true"/>
+    <let name="add_pose_per_cloud" value="true"/>
+
     <!-- Launch omnimapper_ros node -->
     <include file="$(find-pkg-share omnimapper_ros)/launch/omnimapper_ros.launch.xml"/>
   </group>
 
   <!-- Omnimapper publishes a TF from the `map` to the `odom` refrence frame.
     Here, the identity transform is simply used to link `camera_link` to the tf tree. -->
-  <node name="base_link_to_camera_link" pkg="tf2_ros" exec="static_transform_publisher"
+  <node name="odom_to_base_link" pkg="tf2_ros" exec="static_transform_publisher"
     args="0 0 0 0 0 0 1 odom base_link" />
   <node name="base_link_to_camera_link" pkg="tf2_ros" exec="static_transform_publisher"
     args="0 0 0 0 0 0 1 base_link camera_link" />
