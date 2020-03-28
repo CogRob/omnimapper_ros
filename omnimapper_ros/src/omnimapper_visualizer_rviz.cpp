@@ -38,12 +38,13 @@
 
 #include <omnimapper/transform_tools.h>
 #include <pcl/common/transforms.h>
-//#include <omnimapper/BoundedPlane3.h>
+#include <omnimapper/plane.h>
+#include <omnimapper/BoundedPlane3.h>
 #include <pcl/common/common.h>
 #include <pcl/common/time.h>
 #include <pcl/filters/passthrough.h>
 #include <pcl/filters/voxel_grid.h>
-#include <pcl_conversions/pcl_conversions.h>
+#include "pcl_conversions/pcl_conversions.h"
 
 #include <fstream>
 
@@ -678,7 +679,6 @@ void omnimapper::OmniMapperVisualizerRViz<PointT>::spinOnce() {
       pcl::toROSMsg(*aggregate_cloud, cloud_msg);
     }
 
-    // pcl_conversions::moveFromPCL (*aggregate_cloud, cloud_msg);
     cloud_msg.header.frame_id = "map";
     cloud_msg.header.stamp = ros_node_->now();
     map_cloud_pub_->publish(cloud_msg);
@@ -691,8 +691,6 @@ void omnimapper::OmniMapperVisualizerRViz<PointT>::spinOnce() {
   if (draw_object_observation_cloud_) {
     sensor_msgs::msg::PointCloud2 cloud_msg;
     pcl::toROSMsg(aggregate_object_observation_cloud, cloud_msg);
-    // pcl_conversions::moveFromPCL (aggregate_object_observation_cloud,
-    // cloud_msg);
     cloud_msg.header.frame_id = "map";
     cloud_msg.header.stamp = ros_node_->now();
     object_observation_pub_->publish(cloud_msg);
@@ -700,7 +698,7 @@ void omnimapper::OmniMapperVisualizerRViz<PointT>::spinOnce() {
   }
 
   // Draw Planar Landmarks
-  /*
+  
   if (draw_planar_landmarks_)
   {
     visualization_msgs::msg::MarkerArray marker_array;
@@ -738,7 +736,7 @@ void omnimapper::OmniMapperVisualizerRViz<PointT>::spinOnce() {
 
       // Draw the normal
       visualization_msgs::msg::Marker normal_marker;
-      normal_marker.header.frame_id = "map";
+      normal_marker.header.frame_id = rgbd_frame_name_;
       normal_marker.header.stamp = rclcpp::Time();
       normal_marker.ns = "planar_normals";
       normal_marker.id = ++id;//key_value.key.index ();
@@ -772,17 +770,16 @@ void omnimapper::OmniMapperVisualizerRViz<PointT>::spinOnce() {
     {
       sensor_msgs::msg::PointCloud2 cloud_msg;
       pcl::toROSMsg (*plane_boundary_cloud, cloud_msg);
-      //pcl_conversions::moveFromPCL (*plane_boundary_cloud, cloud_msg);
-      cloud_msg.header.frame_id = "map";
+      cloud_msg.header.frame_id = rgbd_frame_name_;
       cloud_msg.header.stamp = ros_node_->now ();
       planar_boundary_pub_->publish(cloud_msg);
     }
 
   }
-  */
+  
 
   // Draw Bounded Planar Landmarks
-  /*
+  
   if (draw_planar_landmarks_)
   {
     visualization_msgs::msg::MarkerArray marker_array;
@@ -824,7 +821,7 @@ void omnimapper::OmniMapperVisualizerRViz<PointT>::spinOnce() {
 
       // Draw the normal
       visualization_msgs::msg::Marker normal_marker;
-      normal_marker.header.frame_id = "map";
+      normal_marker.header.frame_id = rgbd_frame_name_;
       normal_marker.header.stamp = rclcpp::Time();
       normal_marker.ns = "planar_normals";
       normal_marker.id = ++id;//key_value.key.index ();
@@ -858,14 +855,13 @@ void omnimapper::OmniMapperVisualizerRViz<PointT>::spinOnce() {
     {
       sensor_msgs::msg::PointCloud2 cloud_msg;
       pcl::toROSMsg (*plane_boundary_cloud, cloud_msg);
-      //pcl_conversions::moveFromPCL (*plane_boundary_cloud, cloud_msg);
-      cloud_msg.header.frame_id = "map";
+      cloud_msg.header.frame_id = rgbd_frame_name_;
       cloud_msg.header.stamp = ros_node_->now ();
       planar_boundary_pub_->publish(cloud_msg);
     }
 
   }
-  */
+  
 }
 
 template <typename PointT>
@@ -890,7 +886,6 @@ void omnimapper::OmniMapperVisualizerRViz<PointT>::planarRegionCallback(
   if (aggregate_cloud.points.size() > 0) {
     sensor_msgs::msg::PointCloud2 cloud_msg;
     pcl::toROSMsg(aggregate_cloud, cloud_msg);
-    // pcl_conversions::moveFromPCL (aggregate_cloud, cloud_msg);
     cloud_msg.header.frame_id = "camera_rgb_optical_frame";
     cloud_msg.header.stamp = ptime2rostime(t);
     segmented_plane_pub_->publish(cloud_msg);
@@ -920,7 +915,6 @@ void omnimapper::OmniMapperVisualizerRViz<PointT>::labelCloudCallback(
 
   sensor_msgs::msg::PointCloud2 cloud_msg;
   pcl::toROSMsg(labeled_cloud, cloud_msg);
-  // pcl_conversions::moveFromPCL (labeled_cloud, cloud_msg);
   cloud_msg.header.frame_id = cloud->header.frame_id;
   cloud_msg.header.stamp = ptime2rostime(stamp2ptime(cloud->header.stamp));
   segmented_label_cloud_pub_->publish(cloud_msg);

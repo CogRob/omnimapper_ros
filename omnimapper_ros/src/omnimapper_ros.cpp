@@ -43,6 +43,7 @@
 template <typename PointT>
 OmniMapperROS<PointT>::OmniMapperROS(std::shared_ptr<rclcpp::Node> ros_node)
     : ros_node_(ros_node),
+      ros_qos_(rclcpp::SystemDefaultsQoS()),
       tf_buffer_(std::make_shared<tf2_ros::Buffer>(ros_node->get_clock(),
                                                    tf2::durationFromSec(500))),
       tf_listener_(*tf_buffer_),
@@ -52,6 +53,8 @@ OmniMapperROS<PointT>::OmniMapperROS(std::shared_ptr<rclcpp::Node> ros_node)
       no_motion_plugin_(&omb_),
       icp_plugin_(&omb_),
       edge_icp_plugin_(&omb_),
+      plane_plugin_(&omb_),
+      bounded_plane_plugin_(&omb_),
       csm_plugin_(&omb_, ros_node_, tf_buffer_),
       vis_plugin_(&omb_, ros_node_, tf_buffer_),
       csm_vis_plugin_(&omb_, ros_node_, tf_buffer_),
@@ -66,6 +69,14 @@ OmniMapperROS<PointT>::OmniMapperROS(std::shared_ptr<rclcpp::Node> ros_node)
       new omnimapper::GetROSTimeFunctor(ros_node_));
   omb_.setTimeFunctor(time_functor_ptr);
   omb_.setSuppressCommitWindow(suppress_commit_window_);
+
+  if (ros_qos_type_ == std::string("SensorDataQoS")){
+    ros_qos_ = rclcpp::SensorDataQoS();
+  } else if (ros_qos_type_ == std::string("SystemDefaultsQoS")){
+    ros_qos_ = rclcpp::SystemDefaultsQoS();
+  } else {
+    ros_qos_ = rclcpp::SystemDefaultsQoS();
+  }
 
   // Optionally specify an alternate initial pose
   if (use_init_pose_) {
@@ -163,12 +174,62 @@ OmniMapperROS<PointT>::OmniMapperROS(std::shared_ptr<rclcpp::Node> ros_node)
   edge_icp_plugin_.setSaveFullResClouds(false);
   edge_icp_plugin_.setSensorToBaseFunctor(rgbd_to_base_ptr);
 
+  // Set up the Plane Plugin
+  plane_plugin_.setOverwriteTimestamps(false);
+  plane_plugin_.setDisableDataAssociation(false);
+  plane_plugin_.setRangeThreshold(plane_range_threshold_);
+  plane_plugin_.setAngularThreshold(plane_angular_threshold_);
+  // plane_plugin_.setAngularNoise (1.1);
+  plane_plugin_.setAngularNoise(plane_angular_noise_);  // 0.26
+  // plane_plugin_.setRangeNoise (2.2);
+  plane_plugin_.setRangeNoise(plane_range_noise_);  // 0.2
+  plane_plugin_.setSensorToBaseFunctor(rgbd_to_base_ptr);
+
+  // Set up the Bounded Plane Plugin
+  bounded_plane_plugin_.setRangeThreshold(plane_range_threshold_);
+  bounded_plane_plugin_.setAngularThreshold(plane_angular_threshold_);
+  bounded_plane_plugin_.setAngularNoise(plane_angular_noise_);
+  bounded_plane_plugin_.setRangeNoise(plane_range_noise_);
+  bounded_plane_plugin_.setSensorToBaseFunctor(rgbd_to_base_ptr);
+
   // Set up the feature extraction
   if (use_occ_edge_icp_) {
     boost::function<void(const CloudConstPtr&)> edge_icp_cloud_cb = boost::bind(
         &omnimapper::ICPPoseMeasurementPlugin<PointT>::cloudCallback,
         &edge_icp_plugin_, _1);
     organized_segmentation_.setOccludingEdgeCallback(edge_icp_cloud_cb);
+  }
+
+  if (use_planes_) {
+    boost::function<void(
+        std::vector<pcl::PlanarRegion<PointT>,
+                    Eigen::aligned_allocator<pcl::PlanarRegion<PointT>>>,
+        omnimapper::Time)>
+        plane_cb = boost::bind(
+            &omnimapper::PlaneMeasurementPlugin<PointT>::planarRegionCallback,
+            &plane_plugin_, _1, _2);
+    organized_segmentation_.setPlanarRegionStampedCallback(plane_cb);
+    boost::function<void(
+        std::vector<pcl::PlanarRegion<PointT>,
+                    Eigen::aligned_allocator<pcl::PlanarRegion<PointT>>>,
+        omnimapper::Time)>
+        plane_vis_cb = boost::bind(
+            &omnimapper::OmniMapperVisualizerRViz<PointT>::planarRegionCallback,
+            &vis_plugin_, _1, _2);
+    organized_segmentation_.setPlanarRegionStampedCallback(plane_vis_cb);
+  }
+
+  if (use_bounded_planes_) {
+    RCLCPP_INFO(ros_node_->get_logger(),
+                "OmniMapperROS: Installing BoundedPlanePlugin callback.");
+    boost::function<void(
+        std::vector<pcl::PlanarRegion<PointT>,
+                    Eigen::aligned_allocator<pcl::PlanarRegion<PointT>>>,
+        omnimapper::Time)>
+        plane_cb = boost::bind(
+            &omnimapper::BoundedPlanePlugin<PointT>::planarRegionCallback,
+            &bounded_plane_plugin_, _1, _2);
+    organized_segmentation_.setPlanarRegionStampedCallback(plane_cb);
   }
 
   // Optionally use planes in the visualizer
@@ -197,7 +258,7 @@ OmniMapperROS<PointT>::OmniMapperROS(std::shared_ptr<rclcpp::Node> ros_node)
     // Subscribe to laser scan
     laserScan_sub_ =
         ros_node_->create_subscription<sensor_msgs::msg::LaserScan>(
-            "/scan", rclcpp::SensorDataQoS(),
+            "/scan", ros_qos_,
             [this](sensor_msgs::msg::LaserScan::ConstSharedPtr msg) {
               this->laserScanCallback(msg);
             });
@@ -227,13 +288,14 @@ OmniMapperROS<PointT>::OmniMapperROS(std::shared_ptr<rclcpp::Node> ros_node)
   // Subscribe to Point Clouds
   pointcloud_sub_ =
       ros_node_->create_subscription<sensor_msgs::msg::PointCloud2>(
-          cloud_topic_name_, rclcpp::SensorDataQoS(),
+          cloud_topic_name_, ros_qos_,
           [this](sensor_msgs::msg::PointCloud2::ConstSharedPtr msg) {
             this->cloudCallback(msg);
           });
 
   // Install the visualizer
   if (use_rviz_plugin_) {
+    vis_plugin_.setRgbdFrameName(rgbd_frame_name_);
     vis_plugin_.setDrawPoseArray(draw_pose_array_);
     vis_plugin_.setDrawPoseGraph(draw_pose_graph_);
     vis_plugin_.setDrawICPCloudsAlways(draw_icp_clouds_always_);
@@ -264,6 +326,9 @@ OmniMapperROS<PointT>::OmniMapperROS(std::shared_ptr<rclcpp::Node> ros_node)
 template <typename PointT>
 void OmniMapperROS<PointT>::loadROSParams() {
   // Load some params
+
+  ros_node_->get_parameter_or("ros_qos_type", ros_qos_type_,  std::string("SystemDefaultsQoS"));
+
   ros_node_->get_parameter_or("use_planes", use_planes_, true);
   ros_node_->get_parameter_or("use_bounded_planes", use_bounded_planes_, true);
   ros_node_->get_parameter_or("use_objects", use_objects_, true);
@@ -514,7 +579,7 @@ void OmniMapperROS<PointT>::publishCurrentPose() {
   tf2::Stamped<tf2::Transform> current_pose_ros(
       omnimapper::pose3totf(current_pose), tf2_ros::fromMsg(ros_node_->now()),
       "map");
-  geometry_msgs::msg::TransformStamped current_pose_msg;  
+  geometry_msgs::msg::TransformStamped current_pose_msg;
   tf2::convert(current_pose_ros, current_pose_msg);
   current_pose_msg.child_frame_id = "current_pose";
   tf_broadcaster_.sendTransform(current_pose_msg);

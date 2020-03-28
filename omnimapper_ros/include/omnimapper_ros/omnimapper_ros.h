@@ -37,6 +37,8 @@
  */
 
 #include <omnimapper/plugins/icp_plugin.h>
+#include <omnimapper/plugins/plane_plugin.h>
+#include <omnimapper/plugins/bounded_plane_plugin.h>
 #include <omnimapper/plugins/no_motion_pose_plugin.h>
 #include <omnimapper/omnimapper_base.h>
 #include <omnimapper/time.h>
@@ -99,6 +101,9 @@ class OmniMapperROS {
   // ROS Node Handle
   std::shared_ptr<rclcpp::Node> ros_node_;
 
+  // ROS QoS
+  rclcpp::QoS ros_qos_;
+
   // TF Listener
   std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
   tf2_ros::TransformListener tf_listener_;
@@ -121,6 +126,12 @@ class OmniMapperROS {
   // Edge ICP Plugin
   omnimapper::ICPPoseMeasurementPlugin<PointT> edge_icp_plugin_;
 
+  // Plane Plugin
+  omnimapper::PlaneMeasurementPlugin<PointT> plane_plugin_;
+
+  // Bounded Plane Plugin
+  omnimapper::BoundedPlanePlugin<PointT> bounded_plane_plugin_;
+  
   // CSM Plugin
   omnimapper::CanonicalScanMatcherPlugin<sensor_msgs::msg::LaserScan>
       csm_plugin_;
@@ -155,6 +166,7 @@ class OmniMapperROS {
   std::string base_frame_name_;
   std::string rgbd_frame_name_;
   std::string cloud_topic_name_;
+  std::string ros_qos_type_;
 
   bool init_pose_from_tf_;
   bool use_init_pose_;

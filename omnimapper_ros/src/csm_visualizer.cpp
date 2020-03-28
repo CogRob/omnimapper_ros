@@ -39,7 +39,7 @@
 #include "omnimapper_ros/csm_visualizer.h"
 
 #include <pcl/common/transforms.h>
-#include <pcl_conversions/pcl_conversions.h>
+#include "pcl_conversions/pcl_conversions.h"
 
 #include "geometry_msgs/msg/point.hpp"
 #include "geometry_msgs/msg/pose_array.hpp"

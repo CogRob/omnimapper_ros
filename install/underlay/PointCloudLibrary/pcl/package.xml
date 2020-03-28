@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>libpcl-all-dev</name>
+  <version>0.0.0</version>
+  <description>Standin PCL package manifest</description>
+  <maintainer email="pcl@pcl.pcl">PCL</maintainer>
+  <license>BSD</license>
+
+  <license>BSD</license>
+
+  <buildtool_depend>cmake</buildtool_depend>
+  
+  <build_depend>boost</build_depend>
+  <build_depend>eigen</build_depend>
+  <build_depend>libflann-dev</build_depend>
+  <build_depend>libvtk</build_depend>
+
+  <export>
+    <build_type>cmake</build_type>
+  </export>
+</package>
