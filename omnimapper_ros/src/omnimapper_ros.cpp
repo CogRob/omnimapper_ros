@@ -295,6 +295,7 @@ OmniMapperROS<PointT>::OmniMapperROS(std::shared_ptr<rclcpp::Node> ros_node)
 
   // Install the visualizer
   if (use_rviz_plugin_) {
+    vis_plugin_.setRgbdFrameName(rgbd_frame_name_);
     vis_plugin_.setDrawPoseArray(draw_pose_array_);
     vis_plugin_.setDrawPoseGraph(draw_pose_graph_);
     vis_plugin_.setDrawICPCloudsAlways(draw_icp_clouds_always_);
