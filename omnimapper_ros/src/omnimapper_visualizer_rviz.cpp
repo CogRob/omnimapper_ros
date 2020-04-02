@@ -736,7 +736,7 @@ void omnimapper::OmniMapperVisualizerRViz<PointT>::spinOnce() {
 
       // Draw the normal
       visualization_msgs::msg::Marker normal_marker;
-      normal_marker.header.frame_id = rgbd_frame_name_;
+      normal_marker.header.frame_id = "map";
       normal_marker.header.stamp = rclcpp::Time();
       normal_marker.ns = "planar_normals";
       normal_marker.id = ++id;//key_value.key.index ();
@@ -770,7 +770,7 @@ void omnimapper::OmniMapperVisualizerRViz<PointT>::spinOnce() {
     {
       sensor_msgs::msg::PointCloud2 cloud_msg;
       pcl::toROSMsg (*plane_boundary_cloud, cloud_msg);
-      cloud_msg.header.frame_id = rgbd_frame_name_;
+      cloud_msg.header.frame_id = "map";
       cloud_msg.header.stamp = ros_node_->now ();
       planar_boundary_pub_->publish(cloud_msg);
     }
@@ -821,7 +821,7 @@ void omnimapper::OmniMapperVisualizerRViz<PointT>::spinOnce() {
 
       // Draw the normal
       visualization_msgs::msg::Marker normal_marker;
-      normal_marker.header.frame_id = rgbd_frame_name_;
+      normal_marker.header.frame_id = "map";
       normal_marker.header.stamp = rclcpp::Time();
       normal_marker.ns = "planar_normals";
       normal_marker.id = ++id;//key_value.key.index ();
@@ -855,7 +855,7 @@ void omnimapper::OmniMapperVisualizerRViz<PointT>::spinOnce() {
     {
       sensor_msgs::msg::PointCloud2 cloud_msg;
       pcl::toROSMsg (*plane_boundary_cloud, cloud_msg);
-      cloud_msg.header.frame_id = rgbd_frame_name_;
+      cloud_msg.header.frame_id = "map";
       cloud_msg.header.stamp = ros_node_->now ();
       planar_boundary_pub_->publish(cloud_msg);
     }

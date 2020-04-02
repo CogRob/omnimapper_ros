@@ -96,9 +96,6 @@ class OmniMapperVisualizerRViz : public omnimapper::OutputPlugin {
   void setDrawPoseArray(bool draw_pose_array) {
     draw_pose_array_ = draw_pose_array;
   }
-  void setRgbdFrameName(std::string rgbd_frame_name) {
-    rgbd_frame_name_ = rgbd_frame_name;
-  }
   void setDrawPoseGraph(bool draw_pose_graph) {
     draw_pose_graph_ = draw_pose_graph;
   }
@@ -206,7 +203,5 @@ class OmniMapperVisualizerRViz : public omnimapper::OutputPlugin {
   bool passthrough_filter_map_cloud_;
 
   bool write_trajectory_text_file_;
-
-  std::string rgbd_frame_name_;
 };
 }  // namespace omnimapper
