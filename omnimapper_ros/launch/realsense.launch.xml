@@ -26,7 +26,6 @@
     <arg name="use_csm" default="false"/>
     <arg name="use_occ_edge_icp" default="false"/>
 
-    <let name="use_rgbd_sensor_base_tf_functor" value="false"/>
     <let name="broadcast_map_to_odom" value="true"/>
     <let name="use_init_pose" value="true"/>
     <let name="init_pose_from_tf" value="true"/>
