@@ -4,7 +4,7 @@
   <version>0.0.0</version>
   <description>Common support functionality used throughout the Omnimapper stack</description>
   <maintainer email="roxfoxpox@gmail.com">Ruffin White</maintainer>
-  <license>TODO: License declaration</license>
+  <license>BSD-3-Clause</license>
 
   <buildtool_depend>ament_cmake_core</buildtool_depend>
 
