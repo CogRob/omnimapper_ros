@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>omnimapper_ros</name>
+  <version>0.0.0</version>
+  <description>Includes gazebo launch file for Omnimapper</description>
+  <maintainer email="roxfoxpox@gmail.com">Ruffin White</maintainer>
+  <license>BSD-3-Clause</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>omnimapper</depend>
+  <depend>omnimapper_common</depend>
+
+  <exec_depend>launch_xml</exec_depend>
+  <exec_depend>turtlebot3_simulations</exec_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

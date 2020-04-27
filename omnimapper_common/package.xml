@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>omnimapper_common</name>
+  <version>0.0.0</version>
+  <description>Common support functionality used throughout the Omnimapper stack</description>
+  <maintainer email="roxfoxpox@gmail.com">Ruffin White</maintainer>
+  <license>BSD-3-Clause</license>
+
+  <buildtool_depend>ament_cmake_core</buildtool_depend>
+
+  <buildtool_export_depend>ament_cmake_core</buildtool_export_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
