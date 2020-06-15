@@ -7,7 +7,3 @@ repositories:
     type: git
     url: https://github.com/AndreaCensi/csm.git
     version: 8830c3d2723cf65b7d5cb4a1bd9eacaa84f963b0
-  PointCloudLibrary/pcl:
-    type: git
-    url: https://github.com/PointCloudLibrary/pcl.git
-    version: pcl-1.8.1
