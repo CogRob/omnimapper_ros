@@ -2,8 +2,8 @@ repositories:
   borglab/gtsam:
     type: git
     url: https://github.com/borglab/gtsam.git
-    version: 16dbf27375fdefb83ce2355beb0c147fa9c07600
+    version: 91d66eeace4fe84f2354439cf35210eaa0afd123
   AndreaCensi/csm:
     type: git
     url: https://github.com/AndreaCensi/csm.git
-    version: 8830c3d2723cf65b7d5cb4a1bd9eacaa84f963b0
+    version: 8633217cd3a1cbbab9d807c910fc5d9da2f5b9de
