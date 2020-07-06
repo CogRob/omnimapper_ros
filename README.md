@@ -1,6 +1,6 @@
 # omnimapper_ros
 
-ROS2 Wrapper for [Omnimapper](hhttps://github.com/CogRob/omnimapper).
+ROS2 Wrapper for [Omnimapper](https://github.com/CogRob/omnimapper).
 
 ## Docker Demo
 
